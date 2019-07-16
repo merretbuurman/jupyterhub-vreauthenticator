@@ -76,6 +76,8 @@ Called by authenticate()
     was successful, or None otherwise.
 '''
 def check_webdav(username,password,url):
+    LOGGER.debug("Calling check_webdav()...")
+
     purl = urlparse(url)
 
     client = wc.Client({
@@ -91,10 +93,10 @@ def check_webdav(username,password,url):
             success = True
     
     if success:
-        print("credentials accepted for user",username,file=sys.stderr)
+        LOGGER.info("credentials accepted for user %s",username)
         return username
     else:
-        print("credentials refused for user",username,file=sys.stderr)
+        LOGGER.warning("credentials refused for user %s",username)
         return None
 
 
@@ -208,6 +210,10 @@ class WebDAVAuthenticator(Authenticator):
     '''
     @gen.coroutine
     def authenticate(self, handler, data):
+        logging.debug("Calling authenticate()...")
+        # For some reason, the LOGGER variable is not visible in here,
+        # so logging.info(...) has to be used instead of LOGGER.info(...)
+
         token = data.get("token","") # "" if missing
 
         # token authentication
@@ -228,11 +234,11 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = data.get('webdav_password',password)
         webdav_mount = data.get('webdav_mount',"WebDAV")
 
-        print("WebDAV URL",webdav_url,file=sys.stderr)
+        logging.info("WebDAV URL",webdav_url,file=sys.stderr)
 
         if webdav_url not in self.allowed_webdav_servers:
-            print("only allow connections to ",self.allowed_webdav_servers,
-                  " and not to ",webdav_url,file=sys.stderr)
+            logging.warning("WebDAV server not permitted: %s", webdav_url)
+            logging.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
             return None
 
         validuser = check_webdav(username,password,webdav_url)
@@ -240,7 +246,7 @@ class WebDAVAuthenticator(Authenticator):
         #print("allowing using",username,file=sys.stderr)
         #validuser = username
 
-        print("validuser",username, validuser,file=sys.stderr)
+        logging.info("validuser %s %s",username, validuser)
         if validuser == username:
             # safty check
             if "/" in validuser:
@@ -250,7 +256,7 @@ class WebDAVAuthenticator(Authenticator):
             if not self.mount:
                 webdav_mount = ""
 
-        print("return auth_state",file=sys.stderr)
+        logging.debug("return auth_state")
         return {"name": validuser,
                 "auth_state": {
                     "webdav_password": webdav_password,
@@ -270,18 +276,20 @@ class WebDAVAuthenticator(Authenticator):
     '''
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
-        print("pre_spawn_start user",user.name,file=sys.stderr)
+        LOGGER.debug("Calling pre_spawn_start()...")
+        LOGGER.debug("pre_spawn_start for user %s",user.name)
+
         # Write the WebDAV token to the users' environment variables
         auth_state = yield user.get_auth_state()
 
         if not auth_state:
-            print("auth state not enabled",file=sys.stderr)
+            LOGGER.warning("auth state not enabled (doing nothing).")
             # auth_state not enabled
             return
 
-        print("DEBUG: spawner.escaped_name ",spawner.escaped_name,file=sys.stderr)
-        print("DEBUG: spawner.volume_mount_points ",spawner.volume_mount_points,file=sys.stderr)
-        print("DEBUG: spawner.volume_binds ",spawner.volume_binds,file=sys.stderr)
+        LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
+        LOGGER.debug("spawner.volume_mount_points: %s", spawner.volume_mount_points)
+        LOGGER.debug("spawner.volume_binds: %s", spawner.volume_binds)
 
         userdir = list(spawner.volume_binds.keys())[0]
         dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir = userdir)
@@ -300,7 +308,7 @@ class WebDAVAuthenticator(Authenticator):
                          webdav_url,
                          webdav_fullmount)
 
-        print("setting env. variable",user,file=sys.stderr)
+        LOGGER.debug("setting env. variable: %s",user)
         #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username']
         spawner.environment['WEBDAV_USERNAME'] = user.name
         spawner.environment['WEBDAV_PASSWORD'] = webdav_password
