@@ -80,14 +80,18 @@ def check_webdav(username,password,url):
 
     purl = urlparse(url)
 
+    # Try with webdav.client
+    LOGGER.debug('Authenticate using webdav.client...')
     client = wc.Client({
         'webdav_hostname': purl.scheme + "://" + purl.hostname,
         'webdav_login':    username,
         'webdav_password': password})
 
     success = client.check(purl.path)
-    # Workaround:
+
+    # Workaround using requests
     if not success:
+        LOGGER.debug('Not successful. Trying workaround using requests...')
         res = requests.get(url, auth=(username, password))
         if res.status_code == 200:
             success = True
@@ -218,15 +222,18 @@ class WebDAVAuthenticator(Authenticator):
 
         # token authentication
         if token != "":
+            logging.debug('Trying token authentication...')
             success,data = check_token(token)
 
             if success:
                 username = data["unity:persistent"]
+                logging.info('Token authentication successful for %s' % username)
+                logging.debug('Preparing directory...')
                 prep_dir(username)
                 return username
 
         # username/password authentication
-
+        logging.info('Authentication using username and password (via WebDAV)...')
         password = data.get("password","") # "" if missing
         username = data['username']
         webdav_url = data.get('webdav_url', WEBDAV_URL)
@@ -241,21 +248,22 @@ class WebDAVAuthenticator(Authenticator):
             logging.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
             return None
 
+        # WebDAV check here:
         validuser = check_webdav(username,password,webdav_url)
-        # debugging
-        #print("allowing using",username,file=sys.stderr)
-        #validuser = username
-
-        logging.info("validuser %s %s",username, validuser)
+        logging.info("Authentication successful for: %s %s",username, validuser)
         if validuser == username:
-            # safty check
+
+            # safety check
             if "/" in validuser:
+                logging.warn("Authentication failed: Username contains slash.")
                 return None
 
-            # webdav
+            # if not mount, set path to ""
             if not self.mount:
+                logging.debug('Mounting not requested.')
                 webdav_mount = ""
 
+        # Return dict
         logging.debug("return auth_state")
         return {"name": validuser,
                 "auth_state": {
