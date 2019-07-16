@@ -11,7 +11,7 @@ from tornado import gen
 from traitlets import Unicode, List, Bool
 
 from jupyterhub.auth import Authenticator
-import webdav.client as wc
+import webdav.client
 from urllib.parse import urlparse
 
 import logging
@@ -82,7 +82,7 @@ def check_webdav(username,password,url):
 
     # Try with webdav.client
     LOGGER.debug('Authenticate using webdav.client...')
-    client = wc.Client({
+    client = webdav.client.Client({
         'webdav_hostname': purl.scheme + "://" + purl.hostname,
         'webdav_login':    username,
         'webdav_password': password})
