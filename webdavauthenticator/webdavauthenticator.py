@@ -14,6 +14,30 @@ from jupyterhub.auth import Authenticator
 import webdav.client as wc
 from urllib.parse import urlparse
 
+import logging
+
+
+# Configure logging:
+LOGGER = logging.getLogger(__name__)
+
+# Default log level seems to be WARNING and ERROR.
+# Adapt log level for this module here:
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+
+# The default format seems to be:
+# WARNING:packagename.modulename:This is the Message
+# If we add a different formatter, the formatted messages will be printed
+# in addition to the messages formatted as above (so every message will be
+# double).
+#import sys
+#formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(name)s: %(message)s')
+#handler = logging.StreamHandler(sys.stdout)
+#handler.setFormatter(formatter)
+#root.addHandler(handler )
+
+
+
 WEBDAV_URL = "https://b2drop.eudat.eu/remote.php/webdav"
 
 '''
