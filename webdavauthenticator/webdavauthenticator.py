@@ -241,8 +241,8 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = data.get('webdav_password',password)
         webdav_mount = data.get('webdav_mount',"WebDAV")
 
-        logging.info("WebDAV URL",webdav_url,file=sys.stderr)
-
+        # Server allowed?
+        logging.info("WebDAV server: %s",webdav_url)
         if webdav_url not in self.allowed_webdav_servers:
             logging.warning("WebDAV server not permitted: %s", webdav_url)
             logging.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
