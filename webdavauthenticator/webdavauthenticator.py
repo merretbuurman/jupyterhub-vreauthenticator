@@ -149,31 +149,24 @@ authentication also by  authenticate().
 A directory is created and its owner is set to 1000:100.
 
 :param validuser: Username as string.
-:param userdir: Optional. Full path of the directory. If not
-    given, the default is used.
+:param userdir: Full path of the directory.
 :return: Tuple: The full directory name, the UID, and the GID of
     of the directory owner.
 '''
-def prep_dir(validuser,userdir = None):
+def prep_dir(validuser, userdir):
     LOGGER.debug("Calling prep_dir()...")
 
-    basedir = "/mnt/data/jupyterhub-user/"
     userdir_owner_id = 1000
     userdir_group_id = 100
 
-    if userdir == None:
-        # warning username might be escaped
-        userdir = os.path.join(basedir,"jupyterhub-user-" + validuser)
-
     LOGGER.debug("userdir: %s",userdir)
-    LOGGER.debug("dir before: %s",os.listdir(basedir))
 
     if not os.path.isdir(userdir):
-        LOGGER.debug("create: %s",userdir)
+        LOGGER.debug("mkdir...")
         os.mkdir(userdir)
 
-    LOGGER.debug("dir after: %s",os.listdir(basedir))
     LOGGER.debug("stat before: %s",os.stat(userdir))
+    LOGGER.debug("chown...")
     os.chown(userdir,userdir_owner_id,userdir_group_id)
     LOGGER.debug("stat after: %s",os.stat(userdir))
 
@@ -244,7 +237,13 @@ class WebDAVAuthenticator(Authenticator):
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
                 logging.debug('Preparing directory...')
-                prep_dir(username)
+
+                # Prepare user's directory:
+                basedir = "/mnt/data/jupyterhub-user/" # TODO: define somewhere else!
+                logging.debug('Default location for user directories: %s', basedir)
+                userdir = os.path.join(basedir,"jupyterhub-user-" + username)
+                logging.info('Preparing directory: %s')
+                prep_dir(username, userdir)
                 return username
 
         # username/password authentication
