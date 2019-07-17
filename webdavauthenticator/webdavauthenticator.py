@@ -155,6 +155,8 @@ A directory is created and its owner is set to 1000:100.
     of the directory owner.
 '''
 def prep_dir(validuser,userdir = None):
+    LOGGER.debug("Calling prep_dir()...")
+
     basedir = "/mnt/data/jupyterhub-user/"
     userdir_owner_id = 1000
     userdir_group_id = 100
@@ -163,17 +165,17 @@ def prep_dir(validuser,userdir = None):
         # warning username might be escaped
         userdir = os.path.join(basedir,"jupyterhub-user-" + validuser)
 
-    print("userdir",userdir,file=sys.stderr)
-    print("dir before",os.listdir(basedir),file=sys.stderr)
+    LOGGER.debug("userdir: %s",userdir)
+    LOGGER.debug("dir before: %s",os.listdir(basedir))
 
     if not os.path.isdir(userdir):
-        print("create",userdir,file=sys.stderr)
+        LOGGER.debug("create: %s",userdir)
         os.mkdir(userdir)
 
-    print("dir after",os.listdir(basedir),file=sys.stderr)
-    print("stat before",os.stat(userdir),file=sys.stderr)
+    LOGGER.debug("dir after: %s",os.listdir(basedir))
+    LOGGER.debug("stat before: %s",os.stat(userdir))
     os.chown(userdir,userdir_owner_id,userdir_group_id)
-    print("stat after",os.stat(userdir),file=sys.stderr)
+    LOGGER.debug("stat after: %s",os.stat(userdir))
 
     return userdir,userdir_owner_id,userdir_group_id
 
