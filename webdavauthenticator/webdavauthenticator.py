@@ -37,7 +37,7 @@ root.setLevel(logging.INFO)
 #root.addHandler(handler )
 
 
-
+# If no url is passed in the login POST form!
 WEBDAV_URL = "https://b2drop.eudat.eu/remote.php/webdav"
 
 '''
@@ -130,7 +130,7 @@ def check_token(token):
         "Authorization": "Bearer " + token,
         "Content-type": "application/json"})
 
-    success = resp.status_code == 200
+    success = (resp.status_code == 200)
 
     if success:
         data = resp.json()
@@ -144,7 +144,7 @@ Used to prepare the directory where WebDAV data will be mounted
 before a new Notebook is spawned.
 
 Called by pre_spawn_start(), and in case of token
-authentication also by  authenticate().
+authentication also by authenticate().
 
 A directory is created and its owner is set to 1000:100.
 
@@ -236,7 +236,6 @@ class WebDAVAuthenticator(Authenticator):
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
-                logging.debug('Preparing directory...')
 
                 # Prepare user's directory:
                 basedir = "/mnt/data/jupyterhub-user/" # TODO: define somewhere else!
@@ -271,9 +270,9 @@ class WebDAVAuthenticator(Authenticator):
             # in "/opt/conda/lib/python3.6/site-packages/jupyterhub/auth.py", line 325, trying "username = username.lower()"
 
         logging.info("Authentication successful for: %s %s",username, validuser)
-        if validuser == username:
+        if validuser == username: # isn't this redundant? (QUESTION)
 
-            # safety check
+            # safety check (QUESTION: In which case does this matter?)
             if "/" in validuser:
                 logging.warn("Authentication failed: Username contains slash.")
                 return None
@@ -295,10 +294,15 @@ class WebDAVAuthenticator(Authenticator):
 
     '''
     Does a few things before a new Container (e.g. Notebook server) is spawned
-    by the DockerSpawner.
+    by the DockerSpawner:
+
+    * Prepare the directory (to-be-bind-mounted into the container) on the host
+
 
     This runs in the JupyterHub's container. If JupyterHub does not run inside
-    a container, it runs directly on the host.
+    a container, it runs directly on the host. If JupyterHub runs inside a container,
+    certain things such as WebDAV mounts do not make sense, because they will not
+    be visible on the host, as thus, in the spawned containers!
 
     Only works if auth_state dict is passed by the Authenticator.
     '''
@@ -311,7 +315,7 @@ class WebDAVAuthenticator(Authenticator):
         auth_state = yield user.get_auth_state()
 
         if not auth_state:
-            LOGGER.warning("auth state not enabled (doing nothing).")
+            LOGGER.warning("auth state not enabled (performing no pre-spawn activities).")
             # auth_state not enabled
             return
 
@@ -322,7 +326,8 @@ class WebDAVAuthenticator(Authenticator):
         userdir = list(spawner.volume_binds.keys())[0]
         dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir = userdir)
 
-        webdav_mount = auth_state['webdav_mount']
+        # Get WebDAV config from POST form:
+        webdav_mount = auth_state['webdav_mount'] #  TODO rename (to make clear it is not a boolean!)
         webdav_username = auth_state['webdav_username']
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
@@ -336,12 +341,15 @@ class WebDAVAuthenticator(Authenticator):
                          webdav_url,
                          webdav_fullmount)
 
+        # Create environment vars for the container to-be-spawned:
         LOGGER.debug("setting env. variable: %s",user)
         #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username']
         spawner.environment['WEBDAV_USERNAME'] = user.name
         spawner.environment['WEBDAV_PASSWORD'] = webdav_password
         spawner.environment['WEBDAV_URL'] = webdav_url
         spawner.environment['WEBDAV_MOUNT'] = webdav_mount
+
+        LOGGER.debug("Finished pre_spawn_start()...")
 
 
 
