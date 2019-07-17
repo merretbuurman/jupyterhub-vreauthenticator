@@ -332,11 +332,37 @@ class WebDAVAuthenticator(Authenticator):
         # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
         LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
         LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
-        
+
+        # Where user dirs go on the host:
+        userdir_on_host = list(spawner.volume_binds.keys())[0]
+
+        # IMPORTANT:
+        # Can only use the userdir_on_host if the JupyterHub runs directly on the host!
+        # Otherwise we need to use the bind-mounted dir (where the userdir is mounted to)!
+        # So, find out if JupyterHub runs in container:
+        # The env var 'HUB_IS_DOCKERIZED' should ideally be included in Hub's dockerfile, with value of 1.
+        # Also, the directory <userdir_on_host> must be mounted to /usr/share/userdirectories/ !
+        hub_dockerized = False
+        try:
+            tmp = os.environ['HUB_IS_DOCKERIZED']
+            if (int(tmp)  == 1 or tmp.lower() == 'true'):
+                hub_dockerized = True
+        except KeyError:
+            LOGGER.debug('No environment variable "HUB_IS_DOCKERIZED" found. Assuming that hub is not running in a containers.')
+
+        # If JupyterHub runs inside a container, use the dir where it's mounted:
+        userdir = None
+        if hub_dockerized:
+            userdir = '/usr/share/userdirectories/'
+            LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
+            LOGGER.info('User directory will be in: %s (bind-mounted %s).', userdir, userdir_on_host)
+        else:
+            userdir = userdir_on_host
+            LOGGER.info('Hub is not dockerized. User directory will be in: %s', userdir)
+
         # Prepare mount dir:
-        userdir = list(spawner.volume_binds.keys())[0]
-        LOGGER.info("Creating user's directory: %s", userdir)
-        dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir)
+        LOGGER.info("Creating user's directory (on host or in hub's container): %s", userdir)
+        dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name, userdir)
 
         # Get WebDAV config from POST form:
         webdav_mountpoint = auth_state['webdav_mountpoint']
