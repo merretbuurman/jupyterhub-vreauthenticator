@@ -325,9 +325,13 @@ class WebDAVAuthenticator(Authenticator):
             return
 
         LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
-        LOGGER.debug("spawner.volume_mount_points: %s", spawner.volume_mount_points)
-        LOGGER.debug("spawner.volume_binds: %s", spawner.volume_binds)
 
+        # Volume bind-mounts
+        # See jupyterhub_config.py
+        # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
+        LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
+        LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
+        # Prepare mount dir:
         userdir = list(spawner.volume_binds.keys())[0]
         dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir = userdir)
 
