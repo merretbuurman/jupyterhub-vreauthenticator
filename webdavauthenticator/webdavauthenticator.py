@@ -163,7 +163,12 @@ def prep_dir(validuser, userdir):
 
     if not os.path.isdir(userdir):
         LOGGER.debug("mkdir...")
-        os.mkdir(userdir)
+        try:
+            os.mkdir(userdir)
+        except FileNotFoundError as e:
+            LOGGER.error('Could not create user directory (%s): %s', userdir, e)
+            LOGGER.debug('Make sure it can be created in the context where JupyterHub is running.')
+            raise e # InternalServerError
 
     LOGGER.debug("stat before: %s",os.stat(userdir))
     LOGGER.debug("chown...")
