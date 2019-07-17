@@ -255,6 +255,12 @@ class WebDAVAuthenticator(Authenticator):
 
         # WebDAV check here:
         validuser = check_webdav(username,password,webdav_url)
+        if validuser is None:
+            logging.warning("Authentication failed for: %s",username)
+            return None
+            # Otherwise we run into an AttributeError: 'NoneType' object has no attribute 'lower'
+            # in "/opt/conda/lib/python3.6/site-packages/jupyterhub/auth.py", line 325, trying "username = username.lower()"
+
         logging.info("Authentication successful for: %s %s",username, validuser)
         if validuser == username:
 
