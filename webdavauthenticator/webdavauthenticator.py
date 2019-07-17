@@ -55,14 +55,14 @@ seen inside the NoteBook container!
 
 Called by pre_spawn_start()
 '''
-def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_id,webdav_url,webdav_fullmount):
+def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_id,webdav_url,webdav_fullmountpath):
     LOGGER.debug("Calling mount_webdav()...")
 
-    if not os.path.isdir(webdav_fullmount):
-        os.mkdir(webdav_fullmount)
+    if not os.path.isdir(webdav_fullmountpath):
+        os.mkdir(webdav_fullmountpath)
 
     try:
-        p = subprocess.run(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmount],
+        p = subprocess.run(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmountpath],
                        stdout=subprocess.PIPE,input=webdav_password.encode("ascii"))
     except subprocess.CalledProcessError as e:
         LOGGER.error('Mounting failed: %s', e)
@@ -332,8 +332,10 @@ class WebDAVAuthenticator(Authenticator):
         # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
         LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
         LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
+        
         # Prepare mount dir:
         userdir = list(spawner.volume_binds.keys())[0]
+        LOGGER.info("Creating user's directory: %s", userdir)
         dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir = userdir)
 
         # Get WebDAV config from POST form:
@@ -342,14 +344,18 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
 
-        if webdav_mountpoint != "":
-            webdav_fullmount = os.path.join(userdir,webdav_mountpoint)
+        # Do the mount (if requested)
+        if webdav_mountpoint == "":
+            LOGGER.info('No WebDAV mount requested.')
+        else:
+            LOGGER.info('WebDAV mount:')
+            webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
             mount_webdav(webdav_username,
                          webdav_password,
                          userdir_owner_id,
                          userdir_group_id,
                          webdav_url,
-                         webdav_fullmount)
+                         webdav_fullmountpath)
 
         # Create environment vars for the container to-be-spawned:
         LOGGER.debug("setting env. variable: %s",user)
