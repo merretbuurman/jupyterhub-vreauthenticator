@@ -187,7 +187,7 @@ class WebDAVAuthenticator(Authenticator):
         [WEBDAV_URL],
         config = True)
 
-    mount = Bool(
+    do_webdav_mount = Bool(
         False,
         config = True)
 
@@ -278,7 +278,7 @@ class WebDAVAuthenticator(Authenticator):
                 return None
 
             # if not mount, set path to ""
-            if not self.mount:
+            if not self.do_webdav_mount:
                 logging.debug('Mounting not requested.')
                 webdav_mount = ""
 
