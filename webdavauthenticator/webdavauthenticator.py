@@ -208,7 +208,7 @@ class WebDAVAuthenticator(Authenticator):
                 "webdav_password": <webdav_password>,
                 "webdav_username": <webdav_username>,
                 "webdav_url": <webdav_url>,
-                "webdav_mount": <webdav_mount>
+                "webdav_mountpoint": <webdav_mountpoint>
             }
     }
 
@@ -221,6 +221,7 @@ class WebDAVAuthenticator(Authenticator):
     :param handler: the current request handler (tornado.web.RequestHandler)
     :param data: The formdata of the login form, as a dict. The default form
         has 'username' and 'password' fields.
+        Should also have 'webdav_url', 'webdav_password', 'webdav_mountpoint'.
     :return: dict containing username (non-empty string, if authentication
         was successful). The username is None if authentication was not
         successful.
@@ -257,7 +258,7 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = data.get('webdav_url', WEBDAV_URL)
         webdav_username = data.get('webdav_username',username)
         webdav_password = data.get('webdav_password',password)
-        webdav_mount = data.get('webdav_mount',"WebDAV")
+        webdav_mountpoint = data.get('webdav_mountpoint',"WebDAV")
 
         # Server allowed?
         logging.info("WebDAV server: %s",webdav_url)
@@ -285,7 +286,7 @@ class WebDAVAuthenticator(Authenticator):
             # if not mount, set path to ""
             if not self.do_webdav_mount:
                 logging.debug('Mounting not requested.')
-                webdav_mount = ""
+                webdav_mountpoint = ""
 
         # Return dict
         logging.debug("return auth_state")
@@ -294,7 +295,7 @@ class WebDAVAuthenticator(Authenticator):
                     "webdav_password": webdav_password,
                     "webdav_username": webdav_username,
                     "webdav_url": webdav_url,
-                    "webdav_mount": webdav_mount,
+                    "webdav_mountpoint": webdav_mountpoint,
                 }}
 
     '''
@@ -336,13 +337,13 @@ class WebDAVAuthenticator(Authenticator):
         dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir = userdir)
 
         # Get WebDAV config from POST form:
-        webdav_mount = auth_state['webdav_mount'] #  TODO rename (to make clear it is not a boolean!)
+        webdav_mountpoint = auth_state['webdav_mountpoint']
         webdav_username = auth_state['webdav_username']
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
 
-        if webdav_mount != "":
-            webdav_fullmount = os.path.join(userdir,webdav_mount)
+        if webdav_mountpoint != "":
+            webdav_fullmount = os.path.join(userdir,webdav_mountpoint)
             mount_webdav(webdav_username,
                          webdav_password,
                          userdir_owner_id,
@@ -356,7 +357,8 @@ class WebDAVAuthenticator(Authenticator):
         spawner.environment['WEBDAV_USERNAME'] = user.name
         spawner.environment['WEBDAV_PASSWORD'] = webdav_password
         spawner.environment['WEBDAV_URL'] = webdav_url
-        spawner.environment['WEBDAV_MOUNT'] = webdav_mount
+        spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
+        spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
 
         LOGGER.debug("Finished pre_spawn_start()...")
 
