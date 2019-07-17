@@ -56,12 +56,17 @@ seen inside the NoteBook container!
 Called by pre_spawn_start()
 '''
 def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_id,webdav_url,webdav_fullmount):
+    LOGGER.debug("Calling mount_webdav()...")
 
     if not os.path.isdir(webdav_fullmount):
         os.mkdir(webdav_fullmount)
 
-    p = subprocess.run(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmount],
+    try:
+        p = subprocess.run(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmount],
                        stdout=subprocess.PIPE,input=webdav_password.encode("ascii"))
+    except subprocess.CalledProcessError as e:
+        LOGGER.error('Mounting failed: %s', e)
+
 
 
 '''
