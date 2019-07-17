@@ -336,7 +336,7 @@ class WebDAVAuthenticator(Authenticator):
         # Prepare mount dir:
         userdir = list(spawner.volume_binds.keys())[0]
         LOGGER.info("Creating user's directory: %s", userdir)
-        dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir = userdir)
+        dummy,userdir_owner_id,userdir_group_id = prep_dir(user.name,userdir)
 
         # Get WebDAV config from POST form:
         webdav_mountpoint = auth_state['webdav_mountpoint']
