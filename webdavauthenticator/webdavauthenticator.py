@@ -87,19 +87,27 @@ def check_webdav(username,password,url):
 
     # Try with webdav.client
     LOGGER.debug('Authenticate using webdav.client...')
+    success = False
     client = webdav.client.Client({
         'webdav_hostname': purl.scheme + "://" + purl.hostname,
         'webdav_login':    username,
         'webdav_password': password})
 
-    success = client.check(purl.path)
+    try:
+        success = client.check(purl.path)
+    except webdav.exceptions.NoConnection as e:
+        LOGGER.error('Could not connect to %s: %s', url, e)
 
-    # Workaround using requests
+    # Workaround using requests and HTTP Basic Auth
     if not success:
         LOGGER.debug('Not successful. Trying workaround using requests...')
-        res = requests.get(url, auth=(username, password))
-        if res.status_code == 200:
-            success = True
+        try:
+            res = requests.get(url, auth=(username, password))
+            if res.status_code == 200:
+                success = True
+        except requests.exceptions.ConnectionError as e:
+            LOGGER.error('Could not connect to %s: %s', url, e)
+
     
     if success:
         LOGGER.info("credentials accepted for user %s",username)
