@@ -74,10 +74,11 @@ def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_
     LOGGER.debug('Mount stderr: %s', se)
     if p.returncode == 0:
         LOGGER.info('Mounting worked.')
+        return True, None
     else:
         se = se.decode('utf-8').replace('\n', ' ') # initially comes as bytes. I assume UTF for converting to string
         LOGGER.error('Mounting failed: %s', se)
-
+        return False, se
 
 
 
@@ -388,7 +389,7 @@ class WebDAVAuthenticator(Authenticator):
         else:
             LOGGER.info('WebDAV mount:')
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
-            mount_webdav(webdav_username,
+            mount_ok, err_msg = mount_webdav(webdav_username,
                          webdav_password,
                          userdir_owner_id,
                          userdir_group_id,
@@ -403,7 +404,8 @@ class WebDAVAuthenticator(Authenticator):
         spawner.environment['WEBDAV_URL'] = webdav_url
         spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
         spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
-
+        spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
+        spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
         LOGGER.debug("Finished pre_spawn_start()...")
 
 
