@@ -58,14 +58,26 @@ Called by pre_spawn_start()
 def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_id,webdav_url,webdav_fullmountpath):
     LOGGER.debug("Calling mount_webdav()...")
 
+    # Create mount-point:
     if not os.path.isdir(webdav_fullmountpath):
         os.mkdir(webdav_fullmountpath)
 
-    try:
-        p = subprocess.run(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmountpath],
-                       input=webdav_password.encode("ascii"))
-    except subprocess.CalledProcessError as e:
-        LOGGER.error('Mounting failed: %s', e)
+    # Execute the mount:
+    from subprocess import PIPE as PIPE
+    p = subprocess.Popen(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmountpath],
+                   stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    so, se = p.communicate(input=webdav_password.encode("ascii"))
+
+    # check success
+    LOGGER.debug('Mount return code: %s', p.returncode)
+    LOGGER.debug('Mount stdout: %s', so)
+    LOGGER.debug('Mount stderr: %s', se)
+    if p.returncode == 0:
+        LOGGER.info('Mounting worked.')
+    else:
+        se = se.decode('utf-8').replace('\n', ' ') # initially comes as bytes. I assume UTF for converting to string
+        LOGGER.error('Mounting failed: %s', se)
+
 
 
 
