@@ -1,3 +1,18 @@
+'''
+This is an authenticator class for JupyterHubs (based on 
+    jupyterhub.auth.Authenticator) to login to JupyterHub services with
+    valid WebDAV credentials and access to a WebDAV server.
+
+Please note the configuration options for this (in jupyterhub_config.py):
+
+c.WebDAVAuthenticator.allowed_webdav_servers = ["https://xyz.com", "https://abc.fr"]
+c.WebDAVAuthenticator.do_webdav_mount = True
+c.WebDAVAuthenticator.hub_is_dockerized_conf = True
+c.WebDAVAuthenticator.admin_pw = 'skdlaiuewajhwbjuyzgdfhkeshfrsyerhk'
+c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">..."""
+
+'''
+
 import mechanicalsoup
 import warnings
 import requests
