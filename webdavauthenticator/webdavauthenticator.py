@@ -7,7 +7,7 @@ Please note the configuration options for this (in jupyterhub_config.py):
 
 c.WebDAVAuthenticator.allowed_webdav_servers = ["https://xyz.com", "https://abc.fr"]
 c.WebDAVAuthenticator.do_webdav_mount = True
-c.WebDAVAuthenticator.hub_is_dockerized_conf = True
+c.WebDAVAuthenticator.hub_is_dockerized = True
 c.WebDAVAuthenticator.admin_pw = 'skdlaiuewajhwbjuyzgdfhkeshfrsyerhk'
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">..."""
 
@@ -234,11 +234,15 @@ class WebDAVAuthenticator(Authenticator):
         False,
         config = True)
 
-    # Does the JupyterHub run inside a container? This can also be set by an
-    # environment variable (because then it can easily be included in the Hub's
-    # docker file). The config setting overrides the env var. If none are
-    # specified, False is assumed.
-    hub_is_dockerized_conf = Bool(
+    # Does the JupyterHub run inside a container?
+    # This info can be specified using config or using an environment variable
+    # (because environment variables can easily be included in the Hub's
+    # Dockerfile). The setting from jupyterhub_config.py overrides the env var.
+    # If none are specified, False is assumed.
+    # IMPORTANT:
+    # Always access this using method "is_hub_running_in_docker()", because
+    # it checks also the environment variable and may edit this attribute!
+    hub_is_dockerized = Bool(
         None, allow_none = True,
         config = True)
 
@@ -389,23 +393,45 @@ class WebDAVAuthenticator(Authenticator):
     :return: Boolean.
     '''
     def is_hub_running_in_docker(self):
-        hub_dockerized = False
+        # Runs only once, afterwards just returns self.hub_is_dockerized
+        # Side effect: May change self.hub_is_dockerized!
+
+        # Use config, if exists:
+        if self.hub_is_dockerized is not None:
+            LOGGER.debug('Is hub dockerized? %s', self.hub_is_dockerized)
+            return self.hub_is_dockerized
+        else:
+            LOGGER.debug("Is hub dockerized? Don't know, check for env var...")
+
+        # If no config is set, use env var:
         try:
             tmp = os.environ['HUB_IS_DOCKERIZED']
             LOGGER.debug('Is hub dockerized? Env var says: %s ("1" or "true" evaluate to True).', tmp)
+
             if (int(tmp)  == 1 or tmp.lower() == 'true'):
-                hub_dockerized = True
+                LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
+                self.hub_is_dockerized = True
+                LOGGER.info('Hub is dockerized, so make sure that the directory that is bind-mounted into the containers is also bind-mounted to "/usr/share/userdirectories/".') # TODO: self.userdir_in_docker)
+
+            elif (int(tmp)  == 0 or tmp.lower() == 'false'):
+                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+                self.hub_is_dockerized = False
+
+            else:
+                LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
+                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+                self.hub_is_dockerized = False
+            
+            return self.hub_is_dockerized
+
+        # Neither config not env say something:
         except KeyError:
             LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+            LOGGER.info('Is hub dockerized? Assuming no, as we found no other information.')
+            LOGGER.debug('Setting hub_is_dockerized to "False"')
+            self.hub_is_dockerized = False
+            return self.hub_is_dockerized
 
-        LOGGER.debug('Is hub dockerized? Config says: %s', self.hub_is_dockerized_conf)
-        if self.hub_is_dockerized_conf is not None:
-            hub_dockerized = self.hub_is_dockerized_conf
-            LOGGER.debug('Is hub dockerized? Config overrides: %s', hub_dockerized)
-        else:
-            LOGGER.debug('Is hub dockerized? Keeping this value: %s', hub_dockerized)
-
-        return hub_dockerized
 
 
 
