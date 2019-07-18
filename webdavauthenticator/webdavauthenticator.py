@@ -197,7 +197,7 @@ def prep_dir(validuser, userdir, userdir_owner_id, userdir_group_id):
     os.chown(userdir,userdir_owner_id,userdir_group_id)
     LOGGER.debug("stat after: %s",os.stat(userdir))
 
-    return userdir_owner_id,userdir_group_id
+    return None
 
 class WebDAVAuthenticator(Authenticator):
 
@@ -446,7 +446,8 @@ class WebDAVAuthenticator(Authenticator):
 
         # Prepare mount dir:
         LOGGER.info("Creating user's directory (on host or in hub's container): %s", userdir)
-        userdir_owner_id,userdir_group_id = prep_dir(user.name, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
+        uid, gid = USERDIR_OWNER_ID, USERDIR_GROUP_ID
+        prep_dir(user.name, userdir, uid, gid)
 
         # Get WebDAV config from POST form:
         webdav_mountpoint = auth_state['webdav_mountpoint']
@@ -462,8 +463,7 @@ class WebDAVAuthenticator(Authenticator):
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
             mount_ok, err_msg = mount_webdav(webdav_username,
                          webdav_password,
-                         userdir_owner_id,
-                         userdir_group_id,
+                         uid, gid,
                          webdav_url,
                          webdav_fullmountpath)
 
