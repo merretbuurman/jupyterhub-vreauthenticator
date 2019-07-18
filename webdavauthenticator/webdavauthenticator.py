@@ -40,6 +40,17 @@ root.setLevel(logging.INFO)
 # If no url is passed in the login POST form!
 WEBDAV_URL = "https://b2drop.eudat.eu/remote.php/webdav"
 
+# User id and group id for the user's directory. Must match those used in the
+# spawned container. Default is 1000:100. In the container they can be changed,
+# and are set to the env vars 'NB_UID', 'NB_GID', but those are only available
+# inside the container, so we cannot use them here.
+# See:
+# https://github.com/jupyter/docker-stacks/blob/7a3e968dd21268c4b7a6746458ac34e5c3fc17b9/base-notebook/Dockerfile#L10
+# TODO They can be changed in the docker, so we might need to make this
+# configurable! Or use post_spawn_stop to get them from the container somehow?
+USERDIR_OWNER_ID = 1000
+USERDIR_GROUP_ID = 100
+
 '''
 Mount the WebDAV resource using 'mount.davfs' on the
 host machine. This is done by the JupyterHub and only
@@ -168,12 +179,8 @@ A directory is created and its owner is set to 1000:100.
 :return: Tuple: The full directory name, the UID, and the GID of
     of the directory owner.
 '''
-def prep_dir(validuser, userdir):
+def prep_dir(validuser, userdir, userdir_owner_id, userdir_group_id):
     LOGGER.debug("Calling prep_dir()...")
-
-    userdir_owner_id = 1000
-    userdir_group_id = 100
-
     LOGGER.debug("userdir: %s",userdir)
 
     if not os.path.isdir(userdir):
@@ -271,7 +278,7 @@ class WebDAVAuthenticator(Authenticator):
                 logging.debug('Default location for user directories: %s', basedir)
                 userdir = os.path.join(basedir,"jupyterhub-user-" + username)
                 logging.info('Preparing directory: %s')
-                prep_dir(username, userdir)
+                prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
                 return username
 
         # username/password authentication
@@ -421,7 +428,7 @@ class WebDAVAuthenticator(Authenticator):
 
         # Prepare mount dir:
         LOGGER.info("Creating user's directory (on host or in hub's container): %s", userdir)
-        userdir_owner_id,userdir_group_id = prep_dir(user.name, userdir)
+        userdir_owner_id,userdir_group_id = prep_dir(user.name, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
         # Get WebDAV config from POST form:
         webdav_mountpoint = auth_state['webdav_mountpoint']
