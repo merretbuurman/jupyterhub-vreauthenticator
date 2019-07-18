@@ -295,19 +295,17 @@ class WebDAVAuthenticator(Authenticator):
 
         # username/password authentication
         logging.info('Authentication using username and password (via WebDAV)...')
+        webdav_url = data.get('webdav_url', WEBDAV_URL)
+        logging.info("WebDAV server: %s",webdav_url)
+
+        if not self.is_server_whitelisted(webdav_url):
+            return None
+
         password = data.get("password","") # "" if missing
         username = data['username']
-        webdav_url = data.get('webdav_url', WEBDAV_URL)
         webdav_username = data.get('webdav_username',username)
         webdav_password = data.get('webdav_password',password)
         webdav_mountpoint = data.get('webdav_mountpoint',"WebDAV")
-
-        # Server allowed?
-        logging.info("WebDAV server: %s",webdav_url)
-        if webdav_url not in self.allowed_webdav_servers:
-            logging.warning("WebDAV server not permitted: %s", webdav_url)
-            logging.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
-            return None
 
         # WebDAV check here:
         validuser = check_webdav(username,password,webdav_url)
@@ -345,6 +343,14 @@ class WebDAVAuthenticator(Authenticator):
                     "webdav_url": webdav_url,
                     "webdav_mountpoint": webdav_mountpoint,
                 }}
+
+
+    def is_server_whitelisted(self, webdav_url):
+        if webdav_url not in self.allowed_webdav_servers:
+            logging.warning("WebDAV server not permitted: %s", webdav_url)
+            logging.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
+            return False
+        return True
 
     '''
     Find out whether the JupyterHub spawning the containers is running inside
