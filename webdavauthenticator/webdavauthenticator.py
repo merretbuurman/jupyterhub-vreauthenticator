@@ -211,7 +211,7 @@ class WebDAVAuthenticator(Authenticator):
     # docker file). The config setting overrides the env var. If none are
     # specified, False is assumed.
     hub_is_dockerized_conf = Bool(
-        None, none_allowed = True,
+        None, allow_none = True,
         config = True)
 
     '''
