@@ -201,14 +201,20 @@ def prep_dir(validuser, userdir, userdir_owner_id, userdir_group_id):
 
 class WebDAVAuthenticator(Authenticator):
 
+    # The following attributes can be set in the hub's
+    # jupyterhub_config.py:
+
+    # Custom HTML Login form
     custom_html = Unicode(
         "",
         config = True)
 
+    # White list of WebDAV server from which resources may be mounted:
     allowed_webdav_servers = List(
         [WEBDAV_URL],
         config = True)
 
+    # Should the user's WebDAV resource be mounted by the Hub before spawn?
     do_webdav_mount = Bool(
         False,
         config = True)
