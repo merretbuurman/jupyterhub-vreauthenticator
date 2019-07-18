@@ -410,6 +410,46 @@ class WebDAVAuthenticator(Authenticator):
 
 
     '''
+    Get the location where the user directories should be created,
+    in the context where the JuypterHub is running.
+
+    IMPORTANT:
+    This location differs depending on whether JuypterHub runs on
+    the docker host machine, or in a container. In the latter case,
+    the path where the host directory is mounted must be used.
+
+    For finding out whether the JupyterHub runs inside a container,
+    config or environment variable is used. Please see documentation
+    of the method 'is_hub_running_in_docker()' of this class.
+
+    '''
+    def _get_user_dir_location(self, spawner):
+
+        # IMPORTANT:
+        # We can only use the userdir_on_host if the JupyterHub runs directly on
+        # the host! Otherwise we need to use the bind-mounted directory (where
+        # the userdir is mounted to)!
+
+        # First find out if JupyterHub runs in container:
+        hub_dockerized = self.is_hub_running_in_docker()
+        
+        # If JupyterHub runs inside a container, use the dir where it's mounted:
+        userdir = None
+        userdir_on_host = list(spawner.volume_binds.keys())[0]
+
+        if hub_dockerized:
+            userdir = '/usr/share/userdirectories/'
+            LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
+            LOGGER.info('User directory will be in: %s (bind-mounted %s).', userdir, userdir_on_host)
+        else:
+            userdir = userdir_on_host
+            LOGGER.info('Hub is not dockerized. User directory will be in: %s', userdir)
+
+        return userdir
+
+
+
+    '''
     Does a few things before a new Container (e.g. Notebook server) is spawned
     by the DockerSpawner:
 
@@ -443,28 +483,8 @@ class WebDAVAuthenticator(Authenticator):
         LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
         LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
 
-        # Where user dirs go on the host:
-        userdir_on_host = list(spawner.volume_binds.keys())[0]
-
-        # IMPORTANT:
-        # We can only use the userdir_on_host if the JupyterHub runs directly on
-        # the host! Otherwise we need to use the bind-mounted directory (where
-        # the userdir is mounted to)!
-
-        # First find out if JupyterHub runs in container:
-        hub_dockerized = self.is_hub_running_in_docker()
-
-        # If JupyterHub runs inside a container, use the dir where it's mounted:
-        userdir = None
-        if hub_dockerized:
-            userdir = '/usr/share/userdirectories/'
-            LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
-            LOGGER.info('User directory will be in: %s (bind-mounted %s).', userdir, userdir_on_host)
-        else:
-            userdir = userdir_on_host
-            LOGGER.info('Hub is not dockerized. User directory will be in: %s', userdir)
-
-        # Prepare mount dir:
+        # Create user directory:
+        userdir = self._get_user_dir_location(spawner)
         LOGGER.info("Creating user's directory (on host or in hub's container): %s", userdir)
         uid, gid = USERDIR_OWNER_ID, USERDIR_GROUP_ID
         prep_dir(user.name, userdir, uid, gid)
