@@ -227,6 +227,12 @@ class WebDAVAuthenticator(Authenticator):
         None, allow_none = True,
         config = True)
 
+    # Allow a password to be configured, so we can login without a valid
+    # WebDAV account or access to a WebDAV server:
+    admin_pw =  = Unicode(
+        None, allow_none = True,
+        config = True)
+
     '''
     Authenticate method, as needed for any Authenticator class.
 
@@ -305,6 +311,12 @@ class WebDAVAuthenticator(Authenticator):
 
         # WebDAV check here:
         validuser = check_webdav(username,password,webdav_url)
+
+        # Allow a password to be configured, so we can login without a valid
+        # WebDAV account or access to a WebDAV server:
+        if validuser is None and password == self.admin_pw:
+            validuser = username
+
         if validuser is None:
             logging.warning("Authentication failed for: %s",username)
             return None
