@@ -165,7 +165,7 @@ Called by authenticate()
 
 '''
 def check_token(token):
-    UNITY_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo"
+    UNITY_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo" # TODO Move to top
 
     resp = requests.get(UNITY_URL, headers = {
         "Authorization": "Bearer " + token,
@@ -346,7 +346,7 @@ class WebDAVAuthenticator(Authenticator):
 
             # if not mount, set path to ""
             if not self.do_webdav_mount:
-                logging.debug('Mounting not requested.')
+                logging.debug('Mounting not requested, setting mountpoint to "".')
                 webdav_mountpoint = ""
 
         # Return dict
@@ -428,18 +428,17 @@ class WebDAVAuthenticator(Authenticator):
         LOGGER.debug("Calling pre_spawn_start()...")
         LOGGER.debug("pre_spawn_start for user %s",user.name)
 
-        # Write the WebDAV token to the users' environment variables
+        # Retrieve variables:
         auth_state = yield user.get_auth_state()
-
         if not auth_state:
             LOGGER.warning("auth state not enabled (performing no pre-spawn activities).")
-            # auth_state not enabled
-            return
+            return None
 
-        LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
+        # Escaped name from docker spawner:
+        # https://github.com/jupyterhub/dockerspawner/blob/9d4a35995d2c2dd992e070cc7ad260123308b606/dockerspawner/dockerspawner.py#L666
+        #LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
 
-        # Volume bind-mounts
-        # See jupyterhub_config.py
+        # Volume bind-mounts (see jupyterhub_config.py)
         # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
         LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
         LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
@@ -477,10 +476,10 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = auth_state['webdav_url']
 
         # Do the mount (if requested)
-        if webdav_mountpoint == "":
+        if (not self.do_webdav_mount) or (webdav_mountpoint == ""):
             LOGGER.info('No WebDAV mount requested.')
         else:
-            LOGGER.info('WebDAV mount:')
+            LOGGER.info('WebDAV mount requested.')
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
             mount_ok, err_msg = mount_webdav(webdav_username,
                          webdav_password,
@@ -490,7 +489,7 @@ class WebDAVAuthenticator(Authenticator):
 
         # Create environment vars for the container to-be-spawned:
         LOGGER.debug("setting env. variable: %s",user)
-        #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username']
+        #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username'] # TODO QUESTION: Why not?
         spawner.environment['WEBDAV_USERNAME'] = user.name
         spawner.environment['WEBDAV_PASSWORD'] = webdav_password
         spawner.environment['WEBDAV_URL'] = webdav_url
