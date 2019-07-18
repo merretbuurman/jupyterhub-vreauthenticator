@@ -64,11 +64,13 @@ def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_
 
     # Execute the mount:
     from subprocess import PIPE as PIPE
-    p = subprocess.Popen(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmountpath],
-                   stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    tmp = 'uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username)
+    cmd_list = ['mount.davfs','-o', tmp, webdav_url, webdav_fullmountpath]
+    LOGGER.debug('Mount command: %s', ' '.join(cmd_list))
+    p = subprocess.Popen(cmd_list, stdin=PIPE,stdout=PIPE,stderr=PIPE)
     so, se = p.communicate(input=webdav_password.encode("ascii"))
 
-    # check success
+    # Check and return success:
     LOGGER.debug('Mount return code: %s', p.returncode)
     LOGGER.debug('Mount stdout: %s', so)
     LOGGER.debug('Mount stderr: %s', se)
