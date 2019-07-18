@@ -322,6 +322,48 @@ class WebDAVAuthenticator(Authenticator):
                 }}
 
     '''
+    Find out whether the JupyterHub spawning the containers is running inside
+    a docker container, or not. This is important for mounting volumes.
+
+    The information must be explicitly given my the operators of the JupyterHub.
+    This can be done in two ways:
+
+    1. The info can be found from either a environment variable
+    ('HUB_IS_DOCKERIZED'), which can be passed from the docker-compose.yml in
+    case it is a containerized JuypterHub. The values 1 or '1' or 'treu' or 
+    'True' or 'TRUE' all evaluate to True.
+
+    2. It can also be passed as a config item in the jupyterhub_config.py. This
+    takes precedence over the environment variable.
+
+    Note that if JupyterHub is dockerized, the directory that is used for 
+    creating user directories must be bind-mounted to here:
+    /usr/share/userdirectories/
+
+    :return: Boolean.
+    '''
+    def is_hub_running_in_docker(self):
+        hub_dockerized = False
+        try:
+            tmp = os.environ['HUB_IS_DOCKERIZED']
+            LOGGER.debug('Is hub dockerized? Env var says: %s ("1" or "true" evaluate to True).', tmp)
+            if (int(tmp)  == 1 or tmp.lower() == 'true'):
+                hub_dockerized = True
+        except KeyError:
+            LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+
+        LOGGER.debug('Is hub dockerized? Config says: %s', self.hub_is_dockerized_conf)
+        if self.hub_is_dockerized_conf is not None:
+            hub_dockerized = self.hub_is_dockerized_conf
+            LOGGER.debug('Is hub dockerized? Config overrides: %s', hub_dockerized)
+        else:
+            LOGGER.debug('Is hub dockerized? Keeping this value: %s', hub_dockerized)
+
+        return hub_dockerized
+
+
+
+    '''
     Does a few things before a new Container (e.g. Notebook server) is spawned
     by the DockerSpawner:
 
@@ -360,27 +402,12 @@ class WebDAVAuthenticator(Authenticator):
         userdir_on_host = list(spawner.volume_binds.keys())[0]
 
         # IMPORTANT:
-        # Can only use the userdir_on_host if the JupyterHub runs directly on the host!
-        # Otherwise we need to use the bind-mounted dir (where the userdir is mounted to)!
-        # So, find out if JupyterHub runs in container:
-        # The env var 'HUB_IS_DOCKERIZED' should ideally be included in Hub's dockerfile, with value of 1.
-        # Also, the directory <userdir_on_host> must be mounted to /usr/share/userdirectories/ !
-        hub_dockerized = False
-        try:
-            tmp = os.environ['HUB_IS_DOCKERIZED']
-            LOGGER.debug('Is hub dockerized? Env var says: %s ("1" or "true" evaluate to True).', tmp)
-            if (int(tmp)  == 1 or tmp.lower() == 'true'):
-                hub_dockerized = True
-        except KeyError:
-            LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+        # We can only use the userdir_on_host if the JupyterHub runs directly on
+        # the host! Otherwise we need to use the bind-mounted directory (where
+        # the userdir is mounted to)!
 
-        LOGGER.debug('Is hub dockerized? Config says: %s', self.hub_is_dockerized_conf)
-        if self.hub_is_dockerized_conf is not None:
-            hub_dockerized = self.hub_is_dockerized_conf
-            LOGGER.debug('Is hub dockerized? Config overrides: %s', hub_dockerized)
-        else:
-            LOGGER.debug('Is hub dockerized? Keeping this value: %s', hub_dockerized)
-
+        # First find out if JupyterHub runs in container:
+        hub_dockerized = self.is_hub_running_in_docker()
 
         # If JupyterHub runs inside a container, use the dir where it's mounted:
         userdir = None
