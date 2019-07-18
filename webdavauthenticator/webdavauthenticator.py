@@ -204,6 +204,14 @@ class WebDAVAuthenticator(Authenticator):
         False,
         config = True)
 
+    # Does the JupyterHub run inside a container? This can also be set by an
+    # environment variable (because then it can easily be included in the Hub's
+    # docker file). The config setting overrides the env var. If none are
+    # specified, False is assumed.
+    hub_is_dockerized_conf = Bool(
+        None, none_allowed = True,
+        config = True)
+
     '''
     Authenticate method, as needed for any Authenticator class.
 
@@ -358,10 +366,19 @@ class WebDAVAuthenticator(Authenticator):
         hub_dockerized = False
         try:
             tmp = os.environ['HUB_IS_DOCKERIZED']
+            LOGGER.debug('Is hub dockerized? Env var says: %s ("1" or "true" evaluate to True).', tmp)
             if (int(tmp)  == 1 or tmp.lower() == 'true'):
                 hub_dockerized = True
         except KeyError:
-            LOGGER.debug('No environment variable "HUB_IS_DOCKERIZED" found. Assuming that hub is not running in a containers.')
+            LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+
+        LOGGER.debug('Is hub dockerized? Config says: %s', self.hub_is_dockerized_conf)
+        if self.hub_is_dockerized_conf is not None:
+            hub_dockerized = self.hub_is_dockerized_conf
+            LOGGER.debug('Is hub dockerized? Config overrides: %s', hub_dockerized)
+        else:
+            LOGGER.debug('Is hub dockerized? Keeping this value: %s', hub_dockerized)
+
 
         # If JupyterHub runs inside a container, use the dir where it's mounted:
         userdir = None
