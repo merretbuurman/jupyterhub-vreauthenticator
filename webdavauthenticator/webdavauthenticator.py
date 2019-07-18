@@ -244,7 +244,7 @@ class WebDAVAuthenticator(Authenticator):
 
     # Allow a password to be configured, so we can login without a valid
     # WebDAV account or access to a WebDAV server:
-    admin_pw =  = Unicode(
+    admin_pw = Unicode(
         None, allow_none = True,
         config = True)
 
