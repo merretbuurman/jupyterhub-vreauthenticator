@@ -496,16 +496,17 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = auth_state['webdav_url']
 
         # Do the mount (if requested)
-        if (not self.do_webdav_mount) or (webdav_mountpoint == ""):
+        if (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
         else:
-            LOGGER.info('WebDAV mount requested.')
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
+            LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
             mount_ok, err_msg = mount_webdav(webdav_username,
                          webdav_password,
                          uid, gid,
                          webdav_url,
                          webdav_fullmountpath)
+
 
         # Create environment vars for the container to-be-spawned:
         LOGGER.debug("setting env. variable: %s",user)
