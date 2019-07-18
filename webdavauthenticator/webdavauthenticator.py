@@ -63,7 +63,7 @@ def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_
 
     try:
         p = subprocess.run(['mount.davfs','-o','uid=%d,gid=%d,username=%s' % (userdir_owner_id,userdir_group_id,webdav_username),webdav_url,webdav_fullmountpath],
-                       stdout=subprocess.PIPE,input=webdav_password.encode("ascii"))
+                       input=webdav_password.encode("ascii"))
     except subprocess.CalledProcessError as e:
         LOGGER.error('Mounting failed: %s', e)
 
