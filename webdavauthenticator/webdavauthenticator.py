@@ -86,6 +86,7 @@ def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_
 
     # Create mount-point:
     if not os.path.isdir(webdav_fullmountpath):
+        LOGGER.debug("Creating dir, as it does not exist.") # TODO: if it was mounted into the spawned container, it surely exists!
         os.mkdir(webdav_fullmountpath)
 
     # Execute the mount:
@@ -199,7 +200,7 @@ def prep_dir(validuser, userdir, userdir_owner_id, userdir_group_id):
     LOGGER.debug("userdir: %s",userdir)
 
     if not os.path.isdir(userdir):
-        LOGGER.debug("mkdir...")
+        LOGGER.debug("Creating dir, as it does not exist.") # if it was mounted into the spawned container, it surely exists!
         try:
             os.mkdir(userdir)
         except FileNotFoundError as e:
@@ -266,6 +267,7 @@ class WebDAVAuthenticator(Authenticator):
     def _get_user_dir_name(self, username):
         return ('jupyterhub-user-%s' % username)
 
+
     '''
     Authenticate method, as needed for any Authenticator class.
 
@@ -307,9 +309,8 @@ class WebDAVAuthenticator(Authenticator):
         # For some reason, the LOGGER variable is not visible in here,
         # so logging.info(...) has to be used instead of LOGGER.info(...)
 
-        token = data.get("token","") # "" if missing
-
         # token authentication
+        token = data.get("token","") # "" if missing
         if token != "":
             logging.debug('Trying token authentication...')
             success,data = check_token(token)
@@ -323,7 +324,7 @@ class WebDAVAuthenticator(Authenticator):
                 prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
                 return username
 
-        # username/password authentication
+        # WebDAV username/password authentication
         logging.info('Authentication using username and password (via WebDAV)...')
         webdav_url = data.get('webdav_url', WEBDAV_URL)
         logging.info("WebDAV server: %s",webdav_url)
@@ -494,13 +495,12 @@ class WebDAVAuthenticator(Authenticator):
         return userdir
 
 
-
     '''
     Does a few things before a new Container (e.g. Notebook server) is spawned
     by the DockerSpawner:
 
     * Prepare the directory (to-be-bind-mounted into the container) on the host
-
+    * Mount WebDAV-resource if requested
 
     This runs in the JupyterHub's container. If JupyterHub does not run inside
     a container, it runs directly on the host. If JupyterHub runs inside a container,
@@ -531,7 +531,7 @@ class WebDAVAuthenticator(Authenticator):
 
         # Create user directory:
         userdir = self._get_user_dir_location(user.name, spawner)
-        LOGGER.info("Creating user's directory (on host or in hub's container): %s", userdir)
+        LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
         uid, gid = USERDIR_OWNER_ID, USERDIR_GROUP_ID
         prep_dir(user.name, userdir, uid, gid)
 
