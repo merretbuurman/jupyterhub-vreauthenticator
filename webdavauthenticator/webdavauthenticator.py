@@ -540,6 +540,8 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = auth_state['webdav_url']
 
         # Do the mount (if requested)
+        mount_ok = False
+        err_msg = ''
         if (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
         else:
