@@ -544,6 +544,8 @@ class WebDAVAuthenticator(Authenticator):
         err_msg = ''
         if (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
+        elif self.is_hub_running_in_docker():
+            LOGGER.warn('Not mounting, because inside a container this does not make sense!')
         else:
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
             LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
