@@ -411,40 +411,49 @@ class WebDAVAuthenticator(Authenticator):
         # Side effect: May change self.hub_is_dockerized!
 
         # Use config, if exists:
+        # After the first time, it will exist, because the first run sets it!
         if self.hub_is_dockerized is not None:
             LOGGER.debug('Is hub dockerized? %s', self.hub_is_dockerized)
-            return self.hub_is_dockerized
+
         else:
-            LOGGER.debug("Is hub dockerized? Don't know, check for env var...")
+            # If no config is set, use env var:
+            # This runs only the first time:
+            try:
+                tmp = os.environ['HUB_IS_DOCKERIZED']
+                LOGGER.debug('Is hub dockerized? HUB_IS_DOCKERIZED="%s" ("1" or "true" evaluate to True).', tmp)
 
-        # If no config is set, use env var:
-        try:
-            tmp = os.environ['HUB_IS_DOCKERIZED']
-            LOGGER.debug('Is hub dockerized? Env var says: %s ("1" or "true" evaluate to True).', tmp)
+                if (int(tmp)  == 1 or tmp.lower() == 'true'):
+                    LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
+                    self.hub_is_dockerized = True
 
-            if (int(tmp)  == 1 or tmp.lower() == 'true'):
-                LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
-                self.hub_is_dockerized = True
-                LOGGER.info('Hub is dockerized, so make sure that the directory that is bind-mounted into the containers is also bind-mounted to "%s".', self.basedir_in_hub_docker)
+                elif (int(tmp)  == 0 or tmp.lower() == 'false'):
+                    LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+                    self.hub_is_dockerized = False
 
-            elif (int(tmp)  == 0 or tmp.lower() == 'false'):
-                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
-                self.hub_is_dockerized = False
-
-            else:
-                LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
-                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
-                self.hub_is_dockerized = False
+                else:
+                    LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
+                    LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+                    self.hub_is_dockerized = False
             
-            return self.hub_is_dockerized
+            # Neither config not env say something:
+            # This runs only the first time:
+            except KeyError:
+                LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+                LOGGER.info('Is hub dockerized? Assuming no, as we found no other information.')
+                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+                self.hub_is_dockerized = False
 
-        # Neither config not env say something:
-        except KeyError:
-            LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
-            LOGGER.info('Is hub dockerized? Assuming no, as we found no other information.')
-            LOGGER.debug('Setting hub_is_dockerized to "False"')
-            self.hub_is_dockerized = False
-            return self.hub_is_dockerized
+        # Info to user:
+        if self.hub_is_dockerized:        
+            LOGGER.info('*** Hub is dockerized. Make sure the mounts are correct. They should be like this:')
+            LOGGER.info('*** jupyterhub_config.py should have a bind-mount from "/path/on/host/%s"  to "/home/work/jovyan"' % self._get_user_dir_name('xyz'))
+            LOGGER.info('*** docker-compose.yml   should have a bind-mount from "/path/on/host/"    to "%s"' % self.basedir_in_hub_docker)
+        else:
+            LOGGER.info('*** jupyterhub_config.py should have a bind-mount from   "/path/on/host/%s"  to "/home/work/jovyan"' % self._get_user_dir_name('xyz'))
+            LOGGER.info('*** The hub will create user directories directly inside "/path/on/host/"')
+
+
+        return self.hub_is_dockerized
 
 
 
