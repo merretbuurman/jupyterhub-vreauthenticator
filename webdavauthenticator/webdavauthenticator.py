@@ -322,9 +322,10 @@ class WebDAVAuthenticator(Authenticator):
                 # TODO: Not have it hard-coded here!
                 # TODO: Need to have it different here if hub is dockerized?! So we need to move this to the pre-spawner.
                 userdir = "/mnt/data/jupyterhub-user/%s" % self._get_user_dir_name(username)
-                logging.info('Preparing directory: %s')
+                logging.info('Preparing directory: %s' % userdir)
                 prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
                 return username
+                # TODO: Add auth_state, and enable mounting!
 
         # WebDAV username/password authentication
         logging.info('Authentication using username and password (via WebDAV)...')
