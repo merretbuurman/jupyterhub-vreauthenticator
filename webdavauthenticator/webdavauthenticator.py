@@ -522,18 +522,25 @@ class WebDAVAuthenticator(Authenticator):
         # https://github.com/jupyterhub/dockerspawner/blob/9d4a35995d2c2dd992e070cc7ad260123308b606/dockerspawner/dockerspawner.py#L666
         #LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
 
+        userdir = self.prepare_user_directory(user.name, spawner)
+        self.webdav_mount_if_requested(user.name, userdir, auth_state, spawner)
+        LOGGER.debug("Finished pre_spawn_start()...")
+
+    def prepare_user_directory(self, username, spawner):
+
         # Volume bind-mounts (see jupyterhub_config.py)
         # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
         LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
         LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
 
-        # Create user directory:
-        userdir = self._get_user_dir_location(user.name, spawner)
+        userdir = self._get_user_dir_location(username, spawner)
         LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
-        uid, gid = USERDIR_OWNER_ID, USERDIR_GROUP_ID
-        prep_dir(user.name, userdir, uid, gid)
+        prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
+        return userdir
 
-        # Get WebDAV config from POST form:
+    def webdav_mount_if_requested(self, username, userdir, auth_state, spawner):
+
+        # Get config from POST form:
         webdav_mountpoint = auth_state['webdav_mountpoint']
         webdav_username = auth_state['webdav_username']
         webdav_password = auth_state['webdav_password']
@@ -542,29 +549,31 @@ class WebDAVAuthenticator(Authenticator):
         # Do the mount (if requested)
         if (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
+            return
+
         elif self.is_hub_running_in_docker():
             LOGGER.warn('Not mounting, because inside a container this does not make sense!')
+            return
+
         else:
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
             LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
             mount_ok, err_msg = mount_webdav(webdav_username,
                          webdav_password,
-                         uid, gid,
+                         USERDIR_OWNER_ID, USERDIR_GROUP_ID,
                          webdav_url,
                          webdav_fullmountpath)
 
             # Create environment vars for the container to-be-spawned:
-            LOGGER.debug("setting env. variable: %s",user)
+            #LOGGER.debug("setting env. variable: %s",user)
             #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username'] # TODO QUESTION: Why not?
-            spawner.environment['WEBDAV_USERNAME'] = user.name
+            spawner.environment['WEBDAV_USERNAME'] = username
             spawner.environment['WEBDAV_PASSWORD'] = webdav_password
             spawner.environment['WEBDAV_URL'] = webdav_url
             spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
             spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
             spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
             spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
-        
-        LOGGER.debug("Finished pre_spawn_start()...")
 
 
 
