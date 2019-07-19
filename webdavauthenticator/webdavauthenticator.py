@@ -313,15 +313,12 @@ class WebDAVAuthenticator(Authenticator):
         if token != "":
             logging.debug('Trying token authentication...')
             success,data = check_token(token)
-
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
 
                 # Prepare user's directory:
-                basedir = "/mnt/data/jupyterhub-user/" # TODO: define somewhere else!
-                logging.debug('Default location for user directories: %s', basedir)
-                userdir = os.path.join(basedir, self._get_user_dir_name(username))
+                userdir = self._get_user_dir_location(username)
                 logging.info('Preparing directory: %s')
                 prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
                 return username
