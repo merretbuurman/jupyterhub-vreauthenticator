@@ -478,15 +478,12 @@ class WebDAVAuthenticator(Authenticator):
         # We can only use the userdir_on_host if the JupyterHub runs directly on
         # the host! Otherwise we need to use the bind-mounted directory (where
         # the userdir is mounted to)!
-
-        # First find out if JupyterHub runs in container:
-        hub_dockerized = self.is_hub_running_in_docker()
         
-        # If JupyterHub runs inside a container, use the dir where it's mounted:
         userdir = None
         userdir_on_host = list(spawner.volume_binds.keys())[0]
 
-        if hub_dockerized:
+        # If JupyterHub runs inside a container, use the dir where it's mounted:
+        if self.is_hub_running_in_docker():
             userdir = os.path.join(self.basedir_in_hub_docker, self._get_user_dir_name(username))
             LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
             LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir, userdir_on_host)
@@ -495,7 +492,6 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.info('Hub is not dockerized. User directory will be: %s', userdir)
 
         return userdir
-
 
     '''
     Does a few things before a new Container (e.g. Notebook server) is spawned
