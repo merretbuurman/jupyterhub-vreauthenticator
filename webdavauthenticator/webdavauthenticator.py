@@ -319,7 +319,9 @@ class WebDAVAuthenticator(Authenticator):
                 logging.info('Token authentication successful for %s' % username)
 
                 # Prepare user's directory:
-                userdir = self._get_user_dir_location(username)
+                # TODO: Not have it hard-coded here!
+                # TODO: Need to have it different here if hub is dockerized?! So we need to move this to the pre-spawner.
+                userdir = "/mnt/data/jupyterhub-user/%s" % self._get_user_dir_name(username)
                 logging.info('Preparing directory: %s')
                 prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
                 return username
