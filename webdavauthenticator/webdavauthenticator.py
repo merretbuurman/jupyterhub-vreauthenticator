@@ -540,8 +540,6 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = auth_state['webdav_url']
 
         # Do the mount (if requested)
-        mount_ok = False
-        err_msg = ''
         if (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
         elif self.is_hub_running_in_docker():
@@ -555,17 +553,17 @@ class WebDAVAuthenticator(Authenticator):
                          webdav_url,
                          webdav_fullmountpath)
 
-
-        # Create environment vars for the container to-be-spawned:
-        LOGGER.debug("setting env. variable: %s",user)
-        #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username'] # TODO QUESTION: Why not?
-        spawner.environment['WEBDAV_USERNAME'] = user.name
-        spawner.environment['WEBDAV_PASSWORD'] = webdav_password
-        spawner.environment['WEBDAV_URL'] = webdav_url
-        spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
-        spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
-        spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
-        spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
+            # Create environment vars for the container to-be-spawned:
+            LOGGER.debug("setting env. variable: %s",user)
+            #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username'] # TODO QUESTION: Why not?
+            spawner.environment['WEBDAV_USERNAME'] = user.name
+            spawner.environment['WEBDAV_PASSWORD'] = webdav_password
+            spawner.environment['WEBDAV_URL'] = webdav_url
+            spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
+            spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
+            spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
+            spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
+        
         LOGGER.debug("Finished pre_spawn_start()...")
 
 
