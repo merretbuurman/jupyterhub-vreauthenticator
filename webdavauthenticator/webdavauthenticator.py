@@ -444,7 +444,7 @@ class WebDAVAuthenticator(Authenticator):
 
 
     '''
-    Get the location where the user directories should be created,
+    Get the path of the user directory *including the username*,
     in the context where the JuypterHub is running.
 
     IMPORTANT:
@@ -457,7 +457,7 @@ class WebDAVAuthenticator(Authenticator):
     of the method 'is_hub_running_in_docker()' of this class.
 
     '''
-    def _get_user_dir_location(self, spawner):
+    def _get_user_dir_location(self, username, spawner):
 
         # IMPORTANT:
         # We can only use the userdir_on_host if the JupyterHub runs directly on
@@ -472,12 +472,12 @@ class WebDAVAuthenticator(Authenticator):
         userdir_on_host = list(spawner.volume_binds.keys())[0]
 
         if hub_dockerized:
-            userdir = self.userdir_in_docker
+            userdir = os.path.join(self.userdir_in_docker, 'jupyter-user-%s' % username)
             LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
-            LOGGER.info('User directory will be in: %s (bind-mounted %s).', userdir, userdir_on_host)
+            LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir, userdir_on_host)
         else:
             userdir = userdir_on_host
-            LOGGER.info('Hub is not dockerized. User directory will be in: %s', userdir)
+            LOGGER.info('Hub is not dockerized. User directory will be: %s', userdir)
 
         return userdir
 
@@ -518,7 +518,7 @@ class WebDAVAuthenticator(Authenticator):
         LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
 
         # Create user directory:
-        userdir = self._get_user_dir_location(spawner)
+        userdir = self._get_user_dir_location(user.name, spawner)
         LOGGER.info("Creating user's directory (on host or in hub's container): %s", userdir)
         uid, gid = USERDIR_OWNER_ID, USERDIR_GROUP_ID
         prep_dir(user.name, userdir, uid, gid)
