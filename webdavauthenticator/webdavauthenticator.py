@@ -255,7 +255,7 @@ class WebDAVAuthenticator(Authenticator):
     # Only if JupyterHub runs in a container:
     # Where the userdirectory location will be mounted-to.
     # This dir needs to be used inside the docker-compose file of the hub!!!
-    userdir_in_docker = Unicode(
+    basedir_in_hub_docker = Unicode(
         '/usr/share/userdirectories/',
         config = True)
 
@@ -419,7 +419,7 @@ class WebDAVAuthenticator(Authenticator):
             if (int(tmp)  == 1 or tmp.lower() == 'true'):
                 LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
                 self.hub_is_dockerized = True
-                LOGGER.info('Hub is dockerized, so make sure that the directory that is bind-mounted into the containers is also bind-mounted to "%s".', self.userdir_in_docker)
+                LOGGER.info('Hub is dockerized, so make sure that the directory that is bind-mounted into the containers is also bind-mounted to "%s".', self.basedir_in_hub_docker)
 
             elif (int(tmp)  == 0 or tmp.lower() == 'false'):
                 LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
@@ -472,7 +472,7 @@ class WebDAVAuthenticator(Authenticator):
         userdir_on_host = list(spawner.volume_binds.keys())[0]
 
         if hub_dockerized:
-            userdir = os.path.join(self.userdir_in_docker, 'jupyter-user-%s' % username)
+            userdir = os.path.join(self.basedir_in_hub_docker, 'jupyter-user-%s' % username)
             LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
             LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir, userdir_on_host)
         else:
