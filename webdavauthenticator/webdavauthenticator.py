@@ -513,6 +513,9 @@ class WebDAVAuthenticator(Authenticator):
         LOGGER.debug("Calling pre_spawn_start()...")
         LOGGER.debug("pre_spawn_start for user %s",user.name)
 
+        # Prepare directory:
+        userdir = self.prepare_user_directory(user.name, spawner)
+
         # Retrieve variables:
         auth_state = yield user.get_auth_state()
         if not auth_state:
@@ -523,7 +526,7 @@ class WebDAVAuthenticator(Authenticator):
         # https://github.com/jupyterhub/dockerspawner/blob/9d4a35995d2c2dd992e070cc7ad260123308b606/dockerspawner/dockerspawner.py#L666
         #LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
 
-        userdir = self.prepare_user_directory(user.name, spawner)
+        # Mount WebDAV resource:
         self.webdav_mount_if_requested(user.name, userdir, auth_state, spawner)
         LOGGER.debug("Finished pre_spawn_start()...")
 
