@@ -259,6 +259,12 @@ class WebDAVAuthenticator(Authenticator):
         '/usr/share/userdirectories/',
         config = True)
 
+    '''
+    Helper to make sure the directory name is always the same!
+    If this is changed, the mount in jupyerhub_config.py must also change!
+    '''
+    def _get_user_dir_name(self, username):
+        return ('jupyterhub-user-%s' % username)
 
     '''
     Authenticate method, as needed for any Authenticator class.
@@ -315,7 +321,7 @@ class WebDAVAuthenticator(Authenticator):
                 # Prepare user's directory:
                 basedir = "/mnt/data/jupyterhub-user/" # TODO: define somewhere else!
                 logging.debug('Default location for user directories: %s', basedir)
-                userdir = os.path.join(basedir,"jupyterhub-user-" + username)
+                userdir = os.path.join(basedir, self._get_user_dir_name(username))
                 logging.info('Preparing directory: %s')
                 prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
                 return username
@@ -472,7 +478,7 @@ class WebDAVAuthenticator(Authenticator):
         userdir_on_host = list(spawner.volume_binds.keys())[0]
 
         if hub_dockerized:
-            userdir = os.path.join(self.basedir_in_hub_docker, 'jupyter-user-%s' % username)
+            userdir = os.path.join(self.basedir_in_hub_docker, self._get_user_dir_name(username))
             LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
             LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir, userdir_on_host)
         else:
