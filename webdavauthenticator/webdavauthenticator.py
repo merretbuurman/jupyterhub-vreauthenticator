@@ -111,6 +111,9 @@ def mount_webdav(webdav_username,webdav_password,userdir_owner_id,userdir_group_
 
 
 
+
+
+
 '''
 Used for authentication via WebDAV.
 
@@ -320,11 +323,10 @@ class WebDAVAuthenticator(Authenticator):
                 return username
                 # TODO: Add auth_state, and enable mounting!
 
-        # WebDAV username/password authentication
-        logging.info('Authentication using username and password (via WebDAV)...')
-        webdav_url = data.get('webdav_url', WEBDAV_URL)
-        logging.info("WebDAV server: %s",webdav_url)
 
+        # WebDAV username/password authentication
+        webdav_url = data.get('webdav_url', WEBDAV_URL)
+        logging.info('Authentication using username and password via WebDAV: %s' % webdav_url)
         if not self.is_server_whitelisted(webdav_url):
             return None
 
@@ -441,11 +443,10 @@ class WebDAVAuthenticator(Authenticator):
         if self.hub_is_dockerized:        
             LOGGER.info('*** Hub is dockerized. Make sure the mounts are correct. They should be like this:')
             LOGGER.info('*** jupyterhub_config.py should have a bind-mount from "/path/on/host/%s"  to "/home/work/jovyan"' % self._get_user_dir_name('xyz'))
-            LOGGER.info('*** docker-compose.yml   should have a bind-mount from "/path/on/host/"    to "%s"' % self.basedir_in_hub_docker)
+            LOGGER.info('*** docker-compose.yml   should have a bind-mount from "/path/on/host/"                     to "%s"' % self.basedir_in_hub_docker)
         else:
             LOGGER.info('*** jupyterhub_config.py should have a bind-mount from   "/path/on/host/%s"  to "/home/work/jovyan"' % self._get_user_dir_name('xyz'))
             LOGGER.info('*** The hub will create user directories directly inside "/path/on/host/"')
-
 
         return self.hub_is_dockerized
 
