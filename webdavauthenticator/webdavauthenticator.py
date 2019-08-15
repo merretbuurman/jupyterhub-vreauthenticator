@@ -10,6 +10,7 @@ c.WebDAVAuthenticator.do_webdav_mount = True
 c.WebDAVAuthenticator.hub_is_dockerized = True
 c.WebDAVAuthenticator.admin_pw = 'skdlaiuewajhwbjuyzgdfhkeshfrsyerhk'
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">..."""
+c.WebDAVAuthenticator.external_webdav_mount = True
 
 '''
 
@@ -266,6 +267,10 @@ class WebDAVAuthenticator(Authenticator):
     # This dir needs to be used inside the docker-compose file of the hub!!!
     basedir_in_hub_docker = Unicode(
         '/usr/share/userdirectories/',
+        config = True)
+
+    external_webdav_mount = Bool(
+        False,
         config = True)
 
     '''
@@ -555,6 +560,27 @@ class WebDAVAuthenticator(Authenticator):
         prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
         return userdir
 
+        
+    '''
+    Meant for dockerized JupyterHubs that cannot do it themselves. Some daemon
+    or service on the host mounts the WebDAV data (via mount.davfs) onto the
+    host's FS from where it has to be bind-mounted into the container.
+    
+    Notes:
+
+    * Need to deploy that service!
+    * Need to bind.mount the info file at /srv/jupyterhub/please_mount_these.txt
+    * Need to set c.WebDAVAuthenticator.external_webdav_mount = True
+    '''
+    def prepare_external_mount(self, webdav_username, webdav_password, webdav_url):
+        LOGGER.warning("Host is responsible for WebDAV mount...")
+        path = '/srv/jupyterhub/please_mount_these.txt'
+        LOGGER.debug('Writing the WebDAV info into %s, hoping someone will read it' % path)
+        infoline = "%s %s %s" % (webdav_username, webdav_password, webdav_url)
+        LOGGER.debug("Append line: %s", infoline)
+        with open(path, "a") as myfile:
+            myfile.write(infoline+'\n')
+
     def webdav_mount_if_requested(self, username, userdir, auth_state, spawner):
 
         # Get config from POST form:
@@ -562,6 +588,12 @@ class WebDAVAuthenticator(Authenticator):
         webdav_username = auth_state['webdav_username']
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
+
+        # Some other component will mount the resources (hopefully!), we just
+        # provide info by writing in into some file.
+        if self.external_webdav_mount:
+            self.prepare_external_mount(webdav_username, webdav_password, webdav_url)
+            return      
 
         # Do the mount (if requested)
         if userdir is None:
