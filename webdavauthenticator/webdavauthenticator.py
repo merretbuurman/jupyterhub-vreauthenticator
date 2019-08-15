@@ -484,8 +484,11 @@ class WebDAVAuthenticator(Authenticator):
         # the host! Otherwise we need to use the bind-mounted directory (where
         # the userdir is mounted to)!
         
-        userdir = None
+        userdir_on_host = None # on docker host
+        userdir_in_hub = None  # from hub's perspective. May differ!
 
+
+        # 1. Get the location for the user directory on the docker host:
         try:
             # Volume bind-mounts (see jupyterhub_config.py):
             # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
@@ -496,22 +499,26 @@ class WebDAVAuthenticator(Authenticator):
             userdir_on_host = list(spawner.volume_binds.keys())[0]
         except IndexError as e:
             LOGGER.warn('No volumes mounted into the container.')
-            return None
+            return None, None
 
-        # If JupyterHub runs inside a container, use the dir where it's mounted:
+
+        # 2. Get the location for the user directory from the hub's perspective:
         if self.is_hub_running_in_docker():
-            userdir = os.path.join(self.basedir_in_hub_docker, self._get_user_dir_name(username))
-            LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
-            LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir, userdir_on_host)
 
+            # If JupyterHub runs inside a container, use the dir where it's mounted:
+            userdir_in_hub = os.path.join(self.basedir_in_hub_docker, self._get_user_dir_name(username))
+            LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir_in_hub)
+            LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir_in_hub, userdir_on_host)
+            # Safety check:
             if not os.path.isdir(self.basedir_in_hub_docker):
                 LOGGER.error('The directory does not exist: %s (for security reasons, we will not create it here. Make sure it is mounted!' % self.basedir_in_hub_docker)
 
         else:
-            userdir = userdir_on_host
-            LOGGER.info('Hub is not dockerized. User directory will be: %s', userdir)
+            # If JupyterHub runs on the host, just use the host dir:
+            userdir_in_hub = userdir_on_host
+            LOGGER.info('Hub is not dockerized. User directory will be: %s', userdir_in_hub)
 
-        return userdir
+        return userdir_in_hub, userdir_on_host
 
     '''
     Does a few things before a new Container (e.g. Notebook server) is spawned
@@ -560,7 +567,7 @@ class WebDAVAuthenticator(Authenticator):
     '''
     def prepare_user_directory(self, username, spawner):
 
-        userdir = self._get_user_dir_location(username, spawner)
+        userdir, _ = self._get_user_dir_location(username, spawner)
         if userdir is None:
             LOGGER.warn('Does not make sense to prepare user directory if it\'s not available in container.')
             return None
