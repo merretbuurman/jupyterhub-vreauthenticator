@@ -168,7 +168,7 @@ Used for authentication via token.
 Called by authenticate()
 
 '''
-def check_token(token):
+def check_token(token, data):
     UNITY_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo" # TODO Move to top
 
     resp = requests.get(UNITY_URL, headers = {
@@ -178,7 +178,12 @@ def check_token(token):
     success = (resp.status_code == 200)
 
     if success:
+        # TODO: What is the difference between the data dict returned by the
+        # authenticator, and from the unity response. Do we need to keep any of
+        # the initial content? Then, maybe merge both before returning?
+        LOGGER.debug('Data before: %s' % data)
         data = resp.json()
+        LOGGER.debug('Data now   : %s' % data)
         return True, data
     else:
         return False, {}
@@ -316,7 +321,7 @@ class WebDAVAuthenticator(Authenticator):
         token = data.get("token","") # "" if missing
         if token != "":
             logging.debug('Trying token authentication...')
-            success,data = check_token(token)
+            success,data = check_token(token, data)
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
