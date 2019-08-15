@@ -480,7 +480,18 @@ class WebDAVAuthenticator(Authenticator):
         # the userdir is mounted to)!
         
         userdir = None
-        userdir_on_host = list(spawner.volume_binds.keys())[0]
+
+        try:
+            # Volume bind-mounts (see jupyterhub_config.py):
+            # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
+            LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
+            LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
+
+            # Take the first mounted one:
+            userdir_on_host = list(spawner.volume_binds.keys())[0]
+        except IndexError as e:
+            LOGGER.warn('No volumes mounted into the container.')
+            return None
 
         # If JupyterHub runs inside a container, use the dir where it's mounted:
         if self.is_hub_running_in_docker():
@@ -535,12 +546,11 @@ class WebDAVAuthenticator(Authenticator):
 
     def prepare_user_directory(self, username, spawner):
 
-        # Volume bind-mounts (see jupyterhub_config.py)
-        # c.DockerSpawner.volumes = { '/scratch/vre/jupyter_diva/jupyter-user-{username}': '/home/jovyan/work' }
-        LOGGER.debug("On host:  spawner.volume_binds: %s", spawner.volume_binds) # the host directories (as dict) which are bind-mounted, e.g. {'/home/dkrz/k204208/STACKS/spawnertest/nginxtest/foodata/jupyterhub-user-eddy': {'bind': '/home/jovyan/work', 'mode': 'rw'}}
-        LOGGER.debug("In cont.: spawner.volume_mount_points: %s", spawner.volume_mount_points) # list of container directores which are bind-mounted, e.g. ['/home/jovyan/work']
-
         userdir = self._get_user_dir_location(username, spawner)
+        if userdir is None:
+            LOGGER.warn('Does not make sense to prepare user directory if it\'s not available in container.')
+            return None
+
         LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
         prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
         return userdir
@@ -554,7 +564,11 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = auth_state['webdav_url']
 
         # Do the mount (if requested)
-        if (webdav_mountpoint == "") or (not self.do_webdav_mount):
+        if userdir is None:
+            LOGGER.error('Makes no sense to mount WebDAV resource if user directory not available in container.')
+            return
+        
+        elif (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
             return
 
