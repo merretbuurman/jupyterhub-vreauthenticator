@@ -204,8 +204,8 @@ A directory is created and its owner is set to 1000:100.
 :return: Tuple: The full directory name, the UID, and the GID of
     of the directory owner.
 '''
-def prep_dir(validuser, userdir, userdir_owner_id, userdir_group_id):
-    LOGGER.debug("Calling prep_dir()...")
+def _create_and_chown(validuser, userdir, userdir_owner_id, userdir_group_id):
+    LOGGER.debug("Calling _create_and_chown()...")
     LOGGER.debug("userdir: %s",userdir)
 
     if not os.path.isdir(userdir):
@@ -549,6 +549,15 @@ class WebDAVAuthenticator(Authenticator):
         self.webdav_mount_if_requested(user.name, userdir, auth_state, spawner)
         LOGGER.debug("Finished pre_spawn_start()...")
 
+
+    '''
+    Before spawning the container, prepare the directory for the user.
+
+    The directory will then be mounted into the user's container - this has to
+    configured in jupyterhub_config.py, e.g.:
+    c.DockerSpawner.volumes = { '/path/on/host/jupyterhub-user-{username}': '/home/jovyan/work' }
+
+    '''
     def prepare_user_directory(self, username, spawner):
 
         userdir = self._get_user_dir_location(username, spawner)
@@ -557,7 +566,7 @@ class WebDAVAuthenticator(Authenticator):
             return None
 
         LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
-        prep_dir(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
+        _create_and_chown(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
         return userdir
 
         
