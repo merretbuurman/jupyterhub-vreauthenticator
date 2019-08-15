@@ -481,6 +481,10 @@ class WebDAVAuthenticator(Authenticator):
             userdir = os.path.join(self.basedir_in_hub_docker, self._get_user_dir_name(username))
             LOGGER.info('Hub is dockerized. Make sure that the directory %s is mounted to %s.', userdir_on_host, userdir)
             LOGGER.info('User directory will be: %s (bind-mounted %s).', userdir, userdir_on_host)
+
+            if not os.path.isdir(self.basedir_in_hub_docker):
+                LOGGER.error('The directory does not exist: %s (for security reasons, we will not create it here. Make sure it is mounted!' % self.basedir_in_hub_docker)
+
         else:
             userdir = userdir_on_host
             LOGGER.info('Hub is not dockerized. User directory will be: %s', userdir)
