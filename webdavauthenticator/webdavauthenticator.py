@@ -539,8 +539,14 @@ class WebDAVAuthenticator(Authenticator):
         LOGGER.debug("Calling pre_spawn_start()...")
         LOGGER.debug("pre_spawn_start for user %s",user.name)
 
+        # Get userdir name:
+        userdir_in_hub, userdir_on_host = self._get_user_dir_location(username, spawner)
+        if userdir_in_hub is None:
+            LOGGER.error('**************** No directories mounted into container!')
+            LOGGER.warn('Does not make sense to prepare user directory if it\'s not available in container.')
+            
         # Prepare directory:
-        userdir = self.prepare_user_directory(user.name, spawner)
+        self.prepare_user_directory(user.name, userdir_in_hub, userdir_on_host)
 
         # Retrieve variables:
         auth_state = yield user.get_auth_state()
@@ -553,10 +559,10 @@ class WebDAVAuthenticator(Authenticator):
         #LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
 
         # Syncing dirs
-        self.prepare_syncing_dirs(user.name, spawner)
+        self.prepare_syncing_dirs(user.name, userdir_in_hub, userdir_on_host, 'sync')
 
         # Mount WebDAV resource:
-        self.webdav_mount_if_requested(user.name, userdir, auth_state, spawner)
+        self.webdav_mount_if_requested(user.name, userdir_in_hub, auth_state, spawner)
         LOGGER.debug("Finished pre_spawn_start()...")
 
 
@@ -568,20 +574,16 @@ class WebDAVAuthenticator(Authenticator):
     c.DockerSpawner.volumes = { '/path/on/host/jupyterhub-user-{username}': '/home/jovyan/work' }
 
     '''
-    def prepare_user_directory(self, username, spawner):
+    def prepare_user_directory(self, username, userdir_in_hub, userdir_on_host):
 
-        userdir, _ = self._get_user_dir_location(username, spawner)
-        if userdir is None:
+        if userdir_in_hub is None:
             LOGGER.warn('Does not make sense to prepare user directory if it\'s not available in container.')
             return None
 
-        LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
-        _create_and_chown(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
-        return userdir
+        LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir_in_hub)
+        _create_and_chown(username, userdir_in_hub, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
-    def prepare_syncing_dirs(self, username, spawner, suffix='sync'):
-
-        userdir_in_hub, userdir_on_host = self._get_user_dir_location(username, spawner)
+    def prepare_syncing_dirs(self, username, userdir_in_hub, userdir_on_host, suffix):
 
         if userdir_in_hub is None:
             LOGGER.warn('Does not make sense to prepare user syncing directory if it\'s not available in container.')
