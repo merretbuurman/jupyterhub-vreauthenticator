@@ -594,7 +594,7 @@ class WebDAVAuthenticator(Authenticator):
         p1 = os.path.join(userdir_in_hub,  suffix)
         h1 = os.path.join(userdir_on_host, suffix)
         os.mkdir(p1)
-        #os.chown(p1 ,uid , gid)
+        os.chown(p1, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
         # Writing the sync info into a file:
         path = '/srv/jupyterhub/please_sync_these.txt' # TODO!!!
