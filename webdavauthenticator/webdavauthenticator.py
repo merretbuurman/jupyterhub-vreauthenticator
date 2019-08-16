@@ -552,6 +552,9 @@ class WebDAVAuthenticator(Authenticator):
         # https://github.com/jupyterhub/dockerspawner/blob/9d4a35995d2c2dd992e070cc7ad260123308b606/dockerspawner/dockerspawner.py#L666
         #LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
 
+        # Syncing dirs
+        self.prepare_syncing_dirs(user.name, spawner)
+
         # Mount WebDAV resource:
         self.webdav_mount_if_requested(user.name, userdir, auth_state, spawner)
         LOGGER.debug("Finished pre_spawn_start()...")
@@ -576,7 +579,29 @@ class WebDAVAuthenticator(Authenticator):
         _create_and_chown(username, userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
         return userdir
 
-        
+    def prepare_syncing_dirs(self, username, spawner, suffix='sync'):
+
+        userdir_in_hub, userdir_on_host = self._get_user_dir_location(username, spawner)
+
+        if userdir_in_hub is None:
+            LOGGER.warn('Does not make sense to prepare user syncing directory if it\'s not available in container.')
+            return None
+
+        # Create the dir:
+        LOGGER.debug('Creating sync dirs in the user dirs!')
+        p1 = os.path.join(userdir_in_hub,  suffix)
+        h1 = os.path.join(userdir_on_host, suffix)
+        os.mkdir(p1)
+        #os.chown(p1 ,uid , gid)
+
+        # Writing the sync info into a file:
+        path = '/srv/jupyterhub/please_sync_these.txt' # TODO!!!
+        LOGGER.debug('Writing the sync info into %s, hoping someone will read it' % path)
+        infoline = "%s %s" % (p1, h1)
+        LOGGER.debug("Append line: %s", infoline)
+        with open(path, "a") as myfile:
+            myfile.write(infoline+'\n')
+
     '''
     Meant for dockerized JupyterHubs that cannot do it themselves. Some daemon
     or service on the host mounts the WebDAV data (via mount.davfs) onto the
