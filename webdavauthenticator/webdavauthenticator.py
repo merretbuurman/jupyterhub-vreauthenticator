@@ -562,12 +562,6 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
 
-        # Some other component will mount the resources (hopefully!), we just
-        # provide info by writing in into some file.
-        if self.external_webdav_mount:
-            webdavmounter.prepare_external_mount(webdav_username, webdav_password, webdav_url)
-            return      
-
         # Do the mount (if requested)
         if userdir is None:
             LOGGER.error('Makes no sense to mount WebDAV resource if user directory not available in container.')
@@ -579,15 +573,20 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.info('No WebDAV mount-point provided, using default: ',
                 webdav_mountpoint)
 
-        else:
-            # Do the mount:
-            webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
-            LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
-            mount_ok, err_msg = webdavmounter.mount_webdav(webdav_username,
-                         webdav_password,
-                         USERDIR_OWNER_ID, USERDIR_GROUP_ID,
-                         webdav_url,
-                         webdav_fullmountpath)
+        # Some other component will mount the resources (hopefully!), we just
+        # provide info by writing in into some file.
+        if self.external_webdav_mount:
+            webdavmounter.prepare_external_mount(webdav_username, webdav_password, webdav_url)
+            return
+
+        # Do the mount:
+        webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
+        LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
+        mount_ok, err_msg = webdavmounter.mount_webdav(webdav_username,
+                     webdav_password,
+                     USERDIR_OWNER_ID, USERDIR_GROUP_ID,
+                     webdav_url,
+                     webdav_fullmountpath)
 
             # Create environment vars for the container to-be-spawned:
             spawner.environment['WEBDAV_USERNAME'] = username
