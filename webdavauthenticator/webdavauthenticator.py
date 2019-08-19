@@ -515,8 +515,14 @@ class WebDAVAuthenticator(Authenticator):
         # Syncing dirs
         self.prepare_syncing_dirs(user.name, userdir_in_hub, userdir_on_host, 'sync')
 
-        # Mount WebDAV resource:
-        self.webdav_mount_if_requested(user.name, userdir_in_hub, auth_state, spawner)
+        # (Maybe) mount WebDAV resource:
+        if not self.do_webdav_mount:
+            LOGGER.info('No WebDAV mount requested.')
+        elif self.is_hub_running_in_docker():
+            LOGGER.warn('WebDAV mount requested, but makes no sense if the ' +
+                'hub is running inside a container.')
+        else:
+            self.webdav_mount_if_requested(user.name, userdir_in_hub, auth_state, spawner)
 
         # Done!
         LOGGER.debug("Finished pre_spawn_start()...")
@@ -567,13 +573,9 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.error('Makes no sense to mount WebDAV resource if user directory not available in container.')
             return
         
-        # No mount requested, or no mountpoint given:
-        elif (webdav_mountpoint == "") or (not self.do_webdav_mount):
+        # No mountpoint given:
+        elif (webdav_mountpoint == ""):
             LOGGER.info('No WebDAV mount requested.')
-            return
-
-        elif self.is_hub_running_in_docker():
-            LOGGER.warn('Not mounting, because inside a container this does not make sense!')
             return
 
         else:
