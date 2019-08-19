@@ -133,9 +133,6 @@ def check_webdav(username,password,url):
 
 '''
 Used for authentication via token.
-
-Called by authenticate()
-
 '''
 def check_token(token, data):
     UNITY_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo" # TODO Move to top
@@ -397,34 +394,20 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.debug('Is hub dockerized? HUB_IS_DOCKERIZED="%s" ("1" or "true" evaluate to True).', tmp)
 
             if (int(tmp)  == 1 or tmp.lower() == 'true'):
-                LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
                 self.hub_is_dockerized = True
 
             elif (int(tmp)  == 0 or tmp.lower() == 'false'):
-                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
                 self.hub_is_dockerized = False
 
             else:
                 LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
-                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
                 self.hub_is_dockerized = False
         
         # Neither config not env say something:
-        # This runs only the first time:
         except KeyError:
-            LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+            LOGGER.debug('No environment variable "HUB_IS_DOCKERIZED" found.')
             LOGGER.info('Is hub dockerized? Assuming no, as we found no other information.')
-            LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
             self.hub_is_dockerized = False
-
-        # Info to user:
-        if self.hub_is_dockerized:        
-            LOGGER.info('*** Hub is dockerized. Make sure the mounts are correct. They should be like this:')
-            LOGGER.info('*** jupyterhub_config.py should have a bind-mount from "/path/on/host/%s"  to "/home/work/jovyan"' % self._get_user_dir_name('xyz'))
-            LOGGER.info('*** docker-compose.yml   should have a bind-mount from "/path/on/host/"                     to "%s"' % self.basedir_in_hub_docker)
-        else:
-            LOGGER.info('*** jupyterhub_config.py should have a bind-mount from   "/path/on/host/%s"  to "/home/work/jovyan"' % self._get_user_dir_name('xyz'))
-            LOGGER.info('*** The hub will create user directories directly inside "/path/on/host/"')
 
         return self.hub_is_dockerized
 
@@ -534,6 +517,8 @@ class WebDAVAuthenticator(Authenticator):
 
         # Mount WebDAV resource:
         self.webdav_mount_if_requested(user.name, userdir_in_hub, auth_state, spawner)
+
+        # Done!
         LOGGER.debug("Finished pre_spawn_start()...")
 
 
@@ -582,6 +567,7 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.error('Makes no sense to mount WebDAV resource if user directory not available in container.')
             return
         
+        # No mount requested, or no mountpoint given:
         elif (webdav_mountpoint == "") or (not self.do_webdav_mount):
             LOGGER.info('No WebDAV mount requested.')
             return
@@ -591,6 +577,7 @@ class WebDAVAuthenticator(Authenticator):
             return
 
         else:
+            # Do the mount:
             webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
             LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
             mount_ok, err_msg = webdavmounter.mount_webdav(webdav_username,
@@ -600,8 +587,6 @@ class WebDAVAuthenticator(Authenticator):
                          webdav_fullmountpath)
 
             # Create environment vars for the container to-be-spawned:
-            #LOGGER.debug("setting env. variable: %s",user)
-            #spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username'] # TODO QUESTION: Why not?
             spawner.environment['WEBDAV_USERNAME'] = username
             spawner.environment['WEBDAV_PASSWORD'] = webdav_password
             spawner.environment['WEBDAV_URL'] = webdav_url
