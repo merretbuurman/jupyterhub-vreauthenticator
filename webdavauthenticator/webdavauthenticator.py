@@ -3,14 +3,29 @@ This is an authenticator class for JupyterHubs (based on
     jupyterhub.auth.Authenticator) to login to JupyterHub services with
     valid WebDAV credentials and access to a WebDAV server.
 
+*************
 Please note the configuration options for this (in jupyterhub_config.py):
 
 c.WebDAVAuthenticator.allowed_webdav_servers = ["https://xyz.com", "https://abc.fr"]
-c.WebDAVAuthenticator.do_webdav_mount = True
-c.WebDAVAuthenticator.hub_is_dockerized = True
+c.WebDAVAuthenticator.do_webdav_mount = True|False
+c.WebDAVAuthenticator.hub_is_dockerized = True|False|None
 c.WebDAVAuthenticator.admin_pw = 'skdlaiuewajhwbjuyzgdfhkeshfrsyerhk'
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">..."""
-c.WebDAVAuthenticator.external_webdav_mount = True
+c.WebDAVAuthenticator.external_webdav_mount = False|True
+
+
+*************
+You must specify whether JupyterHub is running inside a docker container or
+directly on the docker host. Two ways to do this:
+
+    (1) A config item ("hub_is_dockerized") in jupyterhub_config.py. This takes
+    precedence over the environment variable.
+
+    (2) An environment variable  called "HUB_IS_DOCKERIZED", which can easily
+    be passed from the docker-compose.yml in case JupyterHub is containerized.
+    The values 1, '1', 'true', 'True', and 'TRUE' all evaluate to True.
+
+
 
 '''
 
@@ -120,8 +135,6 @@ Used for authentication via WebDAV.
 
 The username and password are verified against a WebDAV
 server, whose URL is passed as arg.
-
-Called by authenticate()
 
 :return: The username (non-empty string) if the authentication
     was successful, or None otherwise.
@@ -256,13 +269,14 @@ class WebDAVAuthenticator(Authenticator):
         config = True)
 
     # Does the JupyterHub run inside a container?
-    # This info can be specified using config or using an environment variable
-    # (because environment variables can easily be included in the Hub's
-    # Dockerfile). The setting from jupyterhub_config.py overrides the env var.
-    # If none are specified, False is assumed.
+    #
+    # This info can be specified via config (jupyterhub-config.py) or via
+    # env-var ("HUB_IS_DOCKERIZED"). The setting from config overrides the
+    # env-var. If none are specified, False is assumed.
+    #
     # IMPORTANT:
-    # Always access this using method "is_hub_running_in_docker()", because
-    # it checks also the environment variable and may edit this attribute!
+    # Always access this attribute using method "is_hub_running_in_docker()"!
+    # (Because the method checks also the env var and edits this attribute).
     hub_is_dockerized = Bool(
         None, allow_none = True,
         config = True)
@@ -319,7 +333,8 @@ class WebDAVAuthenticator(Authenticator):
     setting value for the user."
     (https://jupyterhub.readthedocs.io/en/stable/api/auth.html)
 
-    :param handler: the current request handler (tornado.web.RequestHandler)
+    :param handler: the current request handler (tornado.web.RequestHandler).
+        Not used.
     :param data: The formdata of the login form, as a dict. The default form
         has 'username' and 'password' fields.
         Should also have 'webdav_url', 'webdav_password', 'webdav_mountpoint'.
@@ -334,7 +349,7 @@ class WebDAVAuthenticator(Authenticator):
         # so logging.info(...) has to be used instead of LOGGER.info(...)
 
         # token authentication
-        token = data.get("token","") # "" if missing
+        token = data.get("token","")
         if token != "":
             logging.debug('Trying token authentication...')
             success,data = check_token(token, data)
@@ -351,7 +366,7 @@ class WebDAVAuthenticator(Authenticator):
         if not self.is_server_whitelisted(webdav_url):
             return None
 
-        password = data.get("password","") # "" if missing
+        password = data.get("password","")
         username = data['username']
         webdav_username = data.get('webdav_username',username)
         webdav_password = data.get('webdav_password',password)
@@ -403,23 +418,11 @@ class WebDAVAuthenticator(Authenticator):
         return True
 
     '''
-    Find out whether the JupyterHub spawning the containers is running inside
-    a docker container, or not. This is important for mounting volumes.
+    Find out whether the JupyterHub is running inside a docker container or not.
+    This is important for mounting volumes.
 
-    The information must be explicitly given my the operators of the JupyterHub.
-    This can be done in two ways:
-
-    1. The info can be found from either a environment variable
-    ('HUB_IS_DOCKERIZED'), which can be passed from the docker-compose.yml in
-    case it is a containerized JuypterHub. The values 1 or '1' or 'treu' or 
-    'True' or 'TRUE' all evaluate to True.
-
-    2. It can also be passed as a config item in the jupyterhub_config.py. This
-    takes precedence over the environment variable.
-
-    Note that if JupyterHub is dockerized, the directory that is used for 
-    creating user directories must be bind-mounted to here:
-    /usr/share/userdirectories/
+    The info must be explicitly given by the operator of JupyterHub (via config
+    or env var).
 
     :return: Boolean.
     '''
@@ -428,7 +431,7 @@ class WebDAVAuthenticator(Authenticator):
         # Side effect: May change self.hub_is_dockerized!
 
         # Use config, if exists:
-        # After the first time, it will exist, because the first run sets it!
+        # (After the first call, this exists, because the first run sets it!)
         if self.hub_is_dockerized is not None:
             LOGGER.debug('Is hub dockerized? %s', self.hub_is_dockerized)
 
@@ -475,13 +478,8 @@ class WebDAVAuthenticator(Authenticator):
 
 
     '''
-    Get the path of the user directory *including the username*,
-    in the context where the JuypterHub is running.
-
-    IMPORTANT:
-    This location differs depending on whether JuypterHub runs on
-    the docker host machine, or in a container. In the latter case,
-    the path where the host directory is mounted must be used.
+    Return the path of the user directory from the JupyterHub's perspective,
+    if the JupyterHub runs inside a container.
 
     For finding out whether the JupyterHub runs inside a container,
     config or environment variable is used. Please see documentation
@@ -491,9 +489,18 @@ class WebDAVAuthenticator(Authenticator):
     def _get_user_dir_location(self, username, spawner):
 
         # IMPORTANT:
-        # We can only use the userdir_on_host if the JupyterHub runs directly on
-        # the host! Otherwise we need to use the bind-mounted directory (where
-        # the userdir is mounted to)!
+        # We can only use the directory path on the host if the JupyterHub runs
+        # directly on the host (i.e. not containerized)! Otherwise we need to
+        # use the path of the mount-point (where the dir is bind-mounted to),
+        # but INSIDE THE HUB CONTAINER, NOT INSIDE THE SPAWNED CONTAINER,
+        # see method "get_user_dir_path_in_hub()".
+        #
+        # Volume bind-mounts (host to spawned container):
+        # See jupyterhub_config.py:
+        # c.DockerSpawner.volumes = { '/path/on/host}': '/path/in/spawned/container' }
+        #
+        # Note: Whether there is a trailing slash seems to depend on user input
+        # in the config file.
         
         userdir_on_host = None # on docker host
         userdir_in_hub = None  # from hub's perspective. May differ!
@@ -547,7 +554,6 @@ class WebDAVAuthenticator(Authenticator):
     '''
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
-        LOGGER.debug("Calling pre_spawn_start()...")
         LOGGER.debug("pre_spawn_start for user %s",user.name)
 
         # Get userdir name:
