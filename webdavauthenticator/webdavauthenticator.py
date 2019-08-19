@@ -571,8 +571,11 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warning("auth state not enabled (performing no pre-spawn activities).")
             return None
 
-        # Syncing dirs
-        self.prepare_syncing_dirs(user.name, userdir, userdir_on_host, 'sync')
+        # Prepare sync subdirectory and synchronization:
+        # TODO: Instead, call the synchronization module?!
+        if userdir is not None:
+            syncdir = prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
+            synchelper.prepare_sync(syncdir)
 
         # (Maybe) mount WebDAV resource:
         if not self.do_webdav_mount:
@@ -590,29 +593,6 @@ class WebDAVAuthenticator(Authenticator):
         LOGGER.debug("Finished pre_spawn_start()...")
 
 
-
-
-
-    def prepare_syncing_dirs(self, username, userdir_in_hub, userdir_on_host, suffix):
-
-        if userdir_in_hub is None:
-            LOGGER.warn('Does not make sense to prepare user syncing directory if it\'s not available in container.')
-            return None
-
-        # Create the dir:
-        LOGGER.debug('Creating sync dirs in the user dirs!')
-        p1 = os.path.join(userdir_in_hub,  suffix)
-        h1 = os.path.join(userdir_on_host, suffix)
-        os.mkdir(p1)
-        os.chown(p1, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
-
-        # Writing the sync info into a file:
-        path = '/srv/jupyterhub/please_sync_these.txt' # TODO!!!
-        LOGGER.debug('Writing the sync info into %s, hoping someone will read it' % path)
-        infoline = "%s %s" % (p1, h1)
-        LOGGER.debug("Append line: %s", infoline)
-        with open(path, "a") as myfile:
-            myfile.write(infoline+'\n')
 
 
 
