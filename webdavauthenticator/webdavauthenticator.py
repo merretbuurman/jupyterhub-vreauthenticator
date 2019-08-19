@@ -344,10 +344,10 @@ class WebDAVAuthenticator(Authenticator):
             tmp = os.environ['HUB_IS_DOCKERIZED']
             LOGGER.debug('Is hub dockerized? HUB_IS_DOCKERIZED="%s" ("1" or "true" evaluate to True).', tmp)
 
-            if (int(tmp)  == 1 or tmp.lower() == 'true'):
+            if (int(tmp) == 1 or tmp.lower() == 'true'):
                 self.hub_is_dockerized = True
 
-            elif (int(tmp)  == 0 or tmp.lower() == 'false'):
+            elif (int(tmp) == 0 or tmp.lower() == 'false'):
                 self.hub_is_dockerized = False
 
             else:
@@ -617,7 +617,8 @@ class WebDAVAuthenticator(Authenticator):
         # Some other component will mount the resources (hopefully!), we just
         # provide info by writing in into some file.
         if self.external_webdav_mount:
-            webdavmounter.prepare_external_mount(webdav_username, webdav_password, webdav_url)
+            webdavmounter.prepare_external_mount(webdav_username,
+                webdav_password, webdav_url)
             return
 
         # Do the mount:
