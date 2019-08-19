@@ -673,9 +673,15 @@ class WebDAVAuthenticator(Authenticator):
 if __name__ == "__main__":
     # Test with
     # python3 webdavauthenticator.py <username> <password>
+    if not len(sys.argv) == 4:
+        print('Not enough args, please call liek this: "python 3 webdavauthenticator.py <username> <password> <url>"')
+
     username=sys.argv[1]
     password=sys.argv[2]
+    url=sys.argv[3]
 
-    print(check_webdav(username,password))
+    print('Test WebDAV Authentication...')
+    print(check_webdav(username,password,url))
 
+    print('Test creating an Authenticator object...')
     WebDAVAuth = WebDAVAuthenticator()
