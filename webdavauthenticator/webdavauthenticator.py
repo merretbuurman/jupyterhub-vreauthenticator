@@ -590,14 +590,14 @@ class WebDAVAuthenticator(Authenticator):
                      webdav_url,
                      webdav_fullmountpath)
 
-            # Create environment vars for the container to-be-spawned:
-            spawner.environment['WEBDAV_USERNAME'] = webdav_username
-            spawner.environment['WEBDAV_PASSWORD'] = webdav_password
-            spawner.environment['WEBDAV_URL'] = webdav_url
-            spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
-            spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
-            spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
-            spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
+        # Create environment vars for the container to-be-spawned:
+        spawner.environment['WEBDAV_USERNAME'] = webdav_username
+        spawner.environment['WEBDAV_PASSWORD'] = webdav_password
+        spawner.environment['WEBDAV_URL'] = webdav_url
+        spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
+        spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
+        spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
+        spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
 
 
 
