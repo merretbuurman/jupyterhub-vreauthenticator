@@ -3,7 +3,7 @@ import subprocess
 import logging
 LOGGER = logging.getLogger(__name__)
 
-WEBDAV_INFO_FILE = '/srv/jupyterhub/please_mount_these.txt'
+WEBDAV_INFO_FILE = 'please_mount_these.txt'
 
 
 '''
