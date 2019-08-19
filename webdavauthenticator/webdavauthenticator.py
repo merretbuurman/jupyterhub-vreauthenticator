@@ -692,8 +692,10 @@ if __name__ == "__main__":
 
     import mock
     user = mock.MagicMock()
+    user.get_auth_state.return_value = res['auth_state']
     spawner = mock.MagicMock()
     spawner.volume_binds = {'/tmp/mytest/myuser' : {'bind': '/path/in/spawned/container', 'mode': 'rw'}}
+    spawner.volume_mount_points = ['/path/in/spawned/container']
     wda.do_webdav_mount = True
     wda.basedir_for_textfiles = '/tmp/mytest'
     wda.pre_spawn_start(user, spawner)
