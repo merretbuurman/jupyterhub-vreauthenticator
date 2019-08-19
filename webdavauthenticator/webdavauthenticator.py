@@ -574,9 +574,10 @@ class WebDAVAuthenticator(Authenticator):
             return
         
         # No mountpoint given:
-        elif (webdav_mountpoint == ""):
-            LOGGER.info('No WebDAV mount requested.')
-            return
+        if webdav_mountpoint == '':
+            webdav_mountpoint = 'WebDAV'
+            LOGGER.info('No WebDAV mount-point provided, using default: ',
+                webdav_mountpoint)
 
         else:
             # Do the mount:
