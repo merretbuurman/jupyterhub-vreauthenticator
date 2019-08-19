@@ -389,34 +389,33 @@ class WebDAVAuthenticator(Authenticator):
         # (After the first call, this exists, because the first run sets it!)
         if self.hub_is_dockerized is not None:
             LOGGER.debug('Is hub dockerized? %s', self.hub_is_dockerized)
+            return self.hub_is_dockerized
 
-        else:
-            # If no config is set, use env var:
-            # This runs only the first time:
-            try:
-                tmp = os.environ['HUB_IS_DOCKERIZED']
-                LOGGER.debug('Is hub dockerized? HUB_IS_DOCKERIZED="%s" ("1" or "true" evaluate to True).', tmp)
+        # If no config is set, use env var:
+        try:
+            tmp = os.environ['HUB_IS_DOCKERIZED']
+            LOGGER.debug('Is hub dockerized? HUB_IS_DOCKERIZED="%s" ("1" or "true" evaluate to True).', tmp)
 
-                if (int(tmp)  == 1 or tmp.lower() == 'true'):
-                    LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
-                    self.hub_is_dockerized = True
+            if (int(tmp)  == 1 or tmp.lower() == 'true'):
+                LOGGER.debug('Setting "hub_is_dockerized" to "True" (this happens only once)')
+                self.hub_is_dockerized = True
 
-                elif (int(tmp)  == 0 or tmp.lower() == 'false'):
-                    LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
-                    self.hub_is_dockerized = False
-
-                else:
-                    LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
-                    LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
-                    self.hub_is_dockerized = False
-            
-            # Neither config not env say something:
-            # This runs only the first time:
-            except KeyError:
-                LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
-                LOGGER.info('Is hub dockerized? Assuming no, as we found no other information.')
+            elif (int(tmp)  == 0 or tmp.lower() == 'false'):
                 LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
                 self.hub_is_dockerized = False
+
+            else:
+                LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
+                LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+                self.hub_is_dockerized = False
+        
+        # Neither config not env say something:
+        # This runs only the first time:
+        except KeyError:
+            LOGGER.debug('Is hub dockerized? No environment variable "HUB_IS_DOCKERIZED" found.')
+            LOGGER.info('Is hub dockerized? Assuming no, as we found no other information.')
+            LOGGER.debug('Setting "hub_is_dockerized" to "False" (this happens only once)')
+            self.hub_is_dockerized = False
 
         # Info to user:
         if self.hub_is_dockerized:        
