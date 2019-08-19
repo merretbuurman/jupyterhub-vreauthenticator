@@ -157,48 +157,44 @@ def check_token(token, data):
 
 
 '''
-Used to prepare the directory where WebDAV data will be mounted 
-before a new Notebook is spawned.
+Create (& chown) the user's directory before the user's container is
+spawned. If intermediate directories don't exist, they are not created,
+for security reasons.
 
-The directory will then be mounted into the user's container - this has to
-configured in jupyterhub_config.py, e.g.:
-c.DockerSpawner.volumes = { '/path/on/host/jupyterhub-user-{username}': '/home/jovyan/work' }
-
-Called by pre_spawn_start(), and in case of token
-authentication also by authenticate().
-
-A directory is created and its owner is set to userdir_owner_id:userdir_group_id.
+The directory will then be mounted into the user's container. IMPORTANT:
+This has to configured in jupyterhub_config.py, e.g.:
+c.DockerSpawner.volumes = { '/path/on/host/juser-{username}': '/home/jovyan/work' }
 
 :param userdir: Full path of the directory.
 :param userdir_owner_id: UID of the directory to be created.
 :param userdir_group_id: GID of the directory to be created.
-:return: Tuple: The full directory name, the UID, and the GID of
-    of the directory owner.
+:param subdir: Name of subdirectory to create.
 '''
-def prepare_user_directory(userdir, userdir_owner_id, userdir_group_id):
-    LOGGER.debug("Calling prepare_user_directory()...")
-    LOGGER.debug("userdir: %s",userdir)
+def prepare_user_directory(userdir, userdir_owner_id, userdir_group_id, subdir=None):
 
-    if userdir is None:
-        LOGGER.warn('Does not make sense to prepare user directory if it\'s not available in container.')
-        return None
-    
-    LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
+    # User dir or subdir?
+    if subdir is None:
+        LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
+    else:
+        userdir = os.path.join(userdir, suffix)
+        LOGGER.info("Preparing subdirectory in user's directory (on host or in hub's container): %s", userdir)
 
+    # Create if not exist:
     if not os.path.isdir(userdir):
-        LOGGER.debug("Creating dir, as it does not exist.") # if it was mounted into the spawned container, it surely exists!
         try:
+            LOGGER.debug("Creating dir, as it does not exist.")
             os.mkdir(userdir)
         except FileNotFoundError as e:
             LOGGER.error('Could not create user directory (%s): %s', userdir, e)
             LOGGER.debug('Make sure it can be created in the context where JupyterHub is running.')
             raise e # InternalServerError
 
+    # Chown:
     LOGGER.debug("stat before: %s",os.stat(userdir))
     LOGGER.debug("chown...")
-    os.chown(userdir,userdir_owner_id,userdir_group_id)
-    LOGGER.debug("stat after: %s",os.stat(userdir))
-    return None
+    os.chown(userdir, userdir_owner_id, userdir_group_id)
+    LOGGER.debug("stat after:  %s",os.stat(userdir))
+    return userdir
 
 class WebDAVAuthenticator(Authenticator):
 
