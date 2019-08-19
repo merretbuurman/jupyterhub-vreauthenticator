@@ -565,17 +565,17 @@ class WebDAVAuthenticator(Authenticator):
         if userdir is not None:
             userdir = prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
-        # Retrieve variables:
-        auth_state = yield user.get_auth_state()
-        if not auth_state:
-            LOGGER.warning("auth state not enabled (performing no pre-spawn activities).")
-            return None
-
         # Prepare sync subdirectory and synchronization:
         # TODO: Instead, call the synchronization module?!
         if userdir is not None:
             syncdir = prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
             synchelper.prepare_sync(syncdir)
+
+        # Retrieve variables:
+        auth_state = yield user.get_auth_state()
+        if not auth_state:
+            LOGGER.warning("auth state not enabled (performing few pre-spawn activities).")
+            return None
 
         # (Maybe) mount WebDAV resource:
         if not self.do_webdav_mount:
