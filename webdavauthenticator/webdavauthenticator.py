@@ -554,12 +554,8 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warning("auth state not enabled (performing no pre-spawn activities).")
             return None
 
-        # Escaped name from docker spawner:
-        # https://github.com/jupyterhub/dockerspawner/blob/9d4a35995d2c2dd992e070cc7ad260123308b606/dockerspawner/dockerspawner.py#L666
-        #LOGGER.debug("spawner.escaped_name: %s", spawner.escaped_name)
-
         # Syncing dirs
-        self.prepare_syncing_dirs(user.name, userdir_in_hub, userdir_on_host, 'sync')
+        self.prepare_syncing_dirs(user.name, userdir, userdir_on_host, 'sync')
 
         # (Maybe) mount WebDAV resource:
         if not self.do_webdav_mount:
@@ -571,7 +567,7 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warn('WebDAV mount requested, but makes no sense if the ' +
                 'hub is running inside a container.')
         else:
-            self.webdav_mount_if_requested(userdir_in_hub, auth_state, spawner)
+            self.webdav_mount_if_requested(userdir, auth_state, spawner)
 
         # Done!
         LOGGER.debug("Finished pre_spawn_start()...")
