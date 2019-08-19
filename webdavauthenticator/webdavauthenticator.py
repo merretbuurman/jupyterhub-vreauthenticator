@@ -663,13 +663,13 @@ if __name__ == "__main__":
     if len(sys.argv) == 4:
         url=sys.argv[3]
 
-    print('Test WebDAV Authentication...')
+    print('__________________________\nTest WebDAV Authentication...')
     print(check_webdav(username, password, url))
 
-    print('Test creating an Authenticator object...')
+    print('__________________________\nTest creating an Authenticator object...')
     wda = WebDAVAuthenticator()
 
-    print('Test the object...')
+    print('__________________________\nTest the object...')
     data = dict(
         username = username,
         password = password,
@@ -682,6 +682,7 @@ if __name__ == "__main__":
     if res.done():
         res = res.result()
 
+    print('__________________________\nTest pre-spawn...')
     try:
         os.mkdir('/tmp/mytest/')
         os.mkdir('/tmp/mytest/myuser')
