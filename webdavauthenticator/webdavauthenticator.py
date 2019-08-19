@@ -518,6 +518,9 @@ class WebDAVAuthenticator(Authenticator):
         # (Maybe) mount WebDAV resource:
         if not self.do_webdav_mount:
             LOGGER.info('No WebDAV mount requested.')
+        elif userdir is None:
+            LOGGER.warn('WebDAV mount requested, but makes no sense if no ' +
+                'directories are bind-mounted into the spawned container.')
         elif self.is_hub_running_in_docker():
             LOGGER.warn('WebDAV mount requested, but makes no sense if the ' +
                 'hub is running inside a container.')
@@ -562,11 +565,6 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
 
-        # Do the mount (if requested)
-        if userdir is None:
-            LOGGER.error('Makes no sense to mount WebDAV resource if user directory not available in container.')
-            return
-        
         # No mountpoint given:
         if webdav_mountpoint == '':
             webdav_mountpoint = 'WebDAV'
