@@ -565,6 +565,10 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
 
+        if not self.is_server_whitelisted(webdav_url):
+            LOGGER.warn('WebDAV mount requested, but server not whitelisted.')
+            return
+
         # No mountpoint given:
         if webdav_mountpoint == '':
             webdav_mountpoint = 'WebDAV'
