@@ -525,7 +525,7 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warn('WebDAV mount requested, but makes no sense if the ' +
                 'hub is running inside a container.')
         else:
-            self.webdav_mount_if_requested(user.name, userdir_in_hub, auth_state, spawner)
+            self.webdav_mount_if_requested(userdir_in_hub, auth_state, spawner)
 
         # Done!
         LOGGER.debug("Finished pre_spawn_start()...")
@@ -557,7 +557,7 @@ class WebDAVAuthenticator(Authenticator):
 
 
 
-    def webdav_mount_if_requested(self, username, userdir, auth_state, spawner):
+    def webdav_mount_if_requested(self, userdir, auth_state, spawner):
 
         # Get config from POST form:
         webdav_mountpoint = auth_state['webdav_mountpoint']
@@ -591,7 +591,7 @@ class WebDAVAuthenticator(Authenticator):
                      webdav_fullmountpath)
 
             # Create environment vars for the container to-be-spawned:
-            spawner.environment['WEBDAV_USERNAME'] = username
+            spawner.environment['WEBDAV_USERNAME'] = webdav_username
             spawner.environment['WEBDAV_PASSWORD'] = webdav_password
             spawner.environment['WEBDAV_URL'] = webdav_url
             spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
