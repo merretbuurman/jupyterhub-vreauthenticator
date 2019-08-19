@@ -48,6 +48,7 @@ from urllib.parse import urlparse
 import logging
 
 import webdavmounter
+import synchelper
 
 # Configure logging:
 LOGGER = logging.getLogger(__name__)
@@ -351,7 +352,7 @@ class WebDAVAuthenticator(Authenticator):
                 self.hub_is_dockerized = False
 
             else:
-                LOGGER.warn('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
+                LOGGER.warning('Is hub dockerized? Could not understand HUB_IS_DOCKERIZED="%s", assuming "False"!' % tmp)
                 self.hub_is_dockerized = False
         
         # Neither config not env say something:
@@ -374,10 +375,10 @@ class WebDAVAuthenticator(Authenticator):
         # First and last time:
         firstlast = (l*c)+(8*c)
         # Log:
-        LOGGER.warn(firstlast)
+        LOGGER.warning(firstlast)
         for msg in msgs:
-            LOGGER.warn(3*c+' '+msg+' '+3*c)
-        LOGGER.warn(firstlast)
+            LOGGER.warning(3*c+' '+msg+' '+3*c)
+        LOGGER.warning(firstlast)
 
 
     def get_user_dir_path(self, spawner):
@@ -391,7 +392,7 @@ class WebDAVAuthenticator(Authenticator):
         # Stop if no mount:
         if userdir_on_host is None:
             LOGGER.error('************* No volumes mounted into the container.')
-            LOGGER.warn('There is no point in using the user directory ' +
+            LOGGER.warning('There is no point in using the user directory ' +
                         'if it is not mounted into the spawned container.')
             return None
 
@@ -520,7 +521,7 @@ class WebDAVAuthenticator(Authenticator):
         if subdir is None:
             LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
         else:
-            userdir = os.path.join(userdir, suffix)
+            userdir = os.path.join(userdir, subdir)
             LOGGER.info("Preparing subdirectory in user's directory (on host or in hub's container): %s", userdir)
 
         # Create if not exist:
@@ -581,10 +582,10 @@ class WebDAVAuthenticator(Authenticator):
         if not self.do_webdav_mount:
             LOGGER.info('No WebDAV mount requested.')
         elif userdir is None:
-            LOGGER.warn('WebDAV mount requested, but makes no sense if no ' +
+            LOGGER.warning('WebDAV mount requested, but makes no sense if no ' +
                 'directories are bind-mounted into the spawned container.')
         elif self.is_hub_running_in_docker():
-            LOGGER.warn('WebDAV mount requested, but makes no sense if the ' +
+            LOGGER.warning('WebDAV mount requested, but makes no sense if the ' +
                 'hub is running inside a container.')
         else:
             self.webdav_mount_if_requested(userdir, auth_state, spawner)
@@ -605,7 +606,7 @@ class WebDAVAuthenticator(Authenticator):
         webdav_url = auth_state['webdav_url']
 
         if not self.is_server_whitelisted(webdav_url):
-            LOGGER.warn('WebDAV mount requested, but server not whitelisted.')
+            LOGGER.warning('WebDAV mount requested, but server not whitelisted.')
             return
 
         # No mountpoint given:
