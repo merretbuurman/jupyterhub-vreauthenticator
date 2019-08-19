@@ -36,7 +36,6 @@ from urllib.parse import parse_qs, urlparse, urlencode
 import xml.etree.ElementTree as ET
 import sys
 import os
-import subprocess
 
 from tornado import gen
 from traitlets import Unicode, List, Bool
