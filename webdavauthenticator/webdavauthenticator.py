@@ -677,5 +677,20 @@ if __name__ == "__main__":
     )
     print(wda.authenticate(None, data))
 
+    print('Test pre-spawn...')
+    try:
+        os.mkdir('/tmp/mytest/')
+        os.mkdir('/tmp/mytest/myuser')
+    except Exception as e:
+        print(e)
+        pass
+
+    import mock
+    user = mock.MagicMock()
+    spawner = mock.MagicMock()
+    spawner.volume_binds = {'/tmp/mytest/myuser' : {'bind': '/path/in/spawned/container', 'mode': 'rw'}}
+    wda.do_webdav_mount = True
+    wda.basedir_for_textfiles = '/tmp/mytest'
+    wda.pre_spawn_start(user, spawner)
 
 
