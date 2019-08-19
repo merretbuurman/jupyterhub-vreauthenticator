@@ -677,9 +677,11 @@ if __name__ == "__main__":
         webdav_password = password,
         webdav_mountpoint = 'fumptz'
     )
-    print(wda.authenticate(None, data))
 
-    print('Test pre-spawn...')
+    res = wda.authenticate(None, data)
+    if res.done():
+        res = res.result()
+
     try:
         os.mkdir('/tmp/mytest/')
         os.mkdir('/tmp/mytest/myuser')
