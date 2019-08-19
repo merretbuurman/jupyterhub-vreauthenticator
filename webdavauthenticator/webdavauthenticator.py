@@ -208,13 +208,6 @@ class WebDAVAuthenticator(Authenticator):
         False,
         config = True)
 
-    '''
-    Helper to make sure the directory name is always the same!
-    If this is changed, the mount in jupyerhub_config.py must also change!
-    '''
-    def _get_user_dir_name(self, username):
-        return ('jupyterhub-user-%s' % username)
-
 
     '''
     Authenticate method, as needed for any Authenticator class.
