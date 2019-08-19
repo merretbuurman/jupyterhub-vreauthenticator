@@ -578,7 +578,8 @@ class WebDAVAuthenticator(Authenticator):
             synchelper.prepare_sync(syncdir, self.basedir_for_textfiles)
 
         # Retrieve variables:
-        auth_state = yield user.get_auth_state()
+        auth_state = user.get_auth_state()
+
         if not auth_state:
             LOGGER.warning("auth state not enabled (performing few pre-spawn activities).")
             return None
