@@ -536,8 +536,12 @@ class WebDAVAuthenticator(Authenticator):
 
         # Chown:
         LOGGER.debug("stat before: %s",os.stat(userdir))
-        LOGGER.debug("chown...")
-        os.chown(userdir, userdir_owner_id, userdir_group_id)
+        try:
+            LOGGER.debug("chown...")
+            os.chown(userdir, userdir_owner_id, userdir_group_id)
+        except PermissionError as e:
+            LOGGER.error('Chowning not allowed, are you running as the right user?')
+            raise e
         LOGGER.debug("stat after:  %s",os.stat(userdir))
         return userdir
 
