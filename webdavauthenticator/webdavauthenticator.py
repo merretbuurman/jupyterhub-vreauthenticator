@@ -299,7 +299,7 @@ class WebDAVAuthenticator(Authenticator):
 
             # safety check (QUESTION: In which case does this matter?)
             if "/" in validuser:
-                logging.warn("Authentication failed: Username contains slash.")
+                logging.warning("Authentication failed: Username contains slash.")
                 return None
 
         # Return dict
@@ -560,18 +560,20 @@ class WebDAVAuthenticator(Authenticator):
     '''
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
-        LOGGER.debug("pre_spawn_start for user %s",user.name)
+        LOGGER.info('Preparing spawn of container for %s...' % user.name)
 
         # Get userdir name:
         userdir = self.get_user_dir_path(spawner)
             
         # Prepare user directory:
         if userdir is not None:
+            LOGGER.info('Preparing user directory...')
             userdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
         # Prepare sync subdirectory and synchronization:
         # TODO: Instead, call the synchronization module?!
         if userdir is not None:
+            LOGGER.info('Preparing directory for synchronization...')
             syncdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
             synchelper.prepare_sync(syncdir, self.basedir_for_textfiles)
 
@@ -579,7 +581,7 @@ class WebDAVAuthenticator(Authenticator):
         auth_state = user.get_auth_state()
 
         if not auth_state:
-            LOGGER.warning("auth state not enabled (performing few pre-spawn activities).")
+            LOGGER.warning("auth state not enabled (performing no more pre-spawn activities).")
             return None
 
         # (Maybe) mount WebDAV resource:
@@ -621,6 +623,7 @@ class WebDAVAuthenticator(Authenticator):
         # Some other component will mount the resources (hopefully!), we just
         # provide info by writing in into some file.
         if self.external_webdav_mount:
+            LOGGER.info('WebDAV mount should be done by external service.')
             webdavmounter.prepare_external_mount(webdav_username,
                 webdav_password, webdav_url, self.basedir_for_textfiles)
             return
