@@ -1,7 +1,7 @@
 import logging
 LOGGER = logging.getLogger(__name__)
 
-PATH_WEBDAV_INFO = '/srv/jupyterhub/please_mount_these.txt'
+WEBDAV_INFO_FILE = '/srv/jupyterhub/please_mount_these.txt'
 
 
 '''
@@ -60,10 +60,11 @@ Notes:
 * Need to bind.mount the info file at /srv/jupyterhub/please_mount_these.txt
 * Need to set c.WebDAVAuthenticator.external_webdav_mount = True
 '''
-def prepare_external_mount(webdav_username, webdav_password, webdav_url):
+def prepare_external_mount(webdav_username, webdav_password, webdav_url, basedir):
     LOGGER.warning("Host is responsible for WebDAV mount...")
-    LOGGER.debug('Writing the WebDAV info into %s, hoping someone will read it' % PATH_WEBDAV_INFO)
+    path = os.path.join(basedir, WEBDAV_INFO_FILE)
+    LOGGER.debug('Writing the WebDAV info into %s, hoping someone will read it' % path)
     infoline = "%s %s %s" % (webdav_username, webdav_password, webdav_url)
     LOGGER.debug("Append line: %s", infoline)
-    with open(PATH_WEBDAV_INFO, "a") as myfile:
+    with open(path, "a") as myfile:
         myfile.write(infoline+'\n')

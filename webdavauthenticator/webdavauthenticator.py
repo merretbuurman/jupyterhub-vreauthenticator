@@ -210,6 +210,11 @@ class WebDAVAuthenticator(Authenticator):
         config = True)
 
 
+    basedir_for_textfiles = Unicode(
+        '/srv/jupyterhub/textfiles/',
+        config = True)
+
+
     '''
     Authenticate method, as needed for any Authenticator class.
 
@@ -570,7 +575,7 @@ class WebDAVAuthenticator(Authenticator):
         # TODO: Instead, call the synchronization module?!
         if userdir is not None:
             syncdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
-            synchelper.prepare_sync(syncdir)
+            synchelper.prepare_sync(syncdir, self.basedir_for_textfiles)
 
         # Retrieve variables:
         auth_state = yield user.get_auth_state()
@@ -619,7 +624,7 @@ class WebDAVAuthenticator(Authenticator):
         # provide info by writing in into some file.
         if self.external_webdav_mount:
             webdavmounter.prepare_external_mount(webdav_username,
-                webdav_password, webdav_url)
+                webdav_password, webdav_url, self.basedir_for_textfiles)
             return
 
         # Do the mount:
