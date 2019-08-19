@@ -660,4 +660,17 @@ if __name__ == "__main__":
     print(check_webdav(username, password, url))
 
     print('Test creating an Authenticator object...')
-    WebDAVAuth = WebDAVAuthenticator()
+    wda = WebDAVAuthenticator()
+
+    print('Test the object...')
+    data = dict(
+        username = username,
+        password = password,
+        webdav_url = url,
+        webdav_password = password,
+        webdav_mountpoint = 'fumptz'
+    )
+    print(wda.authenticate(None, data))
+
+
+
