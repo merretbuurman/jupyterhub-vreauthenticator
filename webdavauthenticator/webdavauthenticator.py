@@ -363,6 +363,23 @@ class WebDAVAuthenticator(Authenticator):
         return self.hub_is_dockerized
 
 
+    @staticmethod
+    def log_first_time(*msgs):
+        # Which character to use?
+        c = '*'
+        # Max length of message:
+        l = 0
+        for msg in msgs:
+            l = max(l, len(msg))
+        # First and last time:
+        firstlast = (l*c)+(8*c)
+        # Log:
+        LOGGER.warn(firstlast)
+        for msg in msgs:
+            LOGGER.warn(3*c+' '+msg+' '+3*c)
+        LOGGER.warn(firstlast)
+
+
     def get_user_dir_path(self, spawner):
 
         userdir = None
@@ -397,7 +414,7 @@ class WebDAVAuthenticator(Authenticator):
             basedir_in_hub_docker = os.path.dirname(userdir_in_hub.restrip('/'))
             basedir_on_host = os.path.dirname(userdir_on_host.restrip('/'))
             needed_mount = "%s:%s" % (basedir_on_host, basedir_in_hub_docker)
-            LOGGER.info("Hub runs in docker", 
+            self.log_first_time("Hub runs in docker", 
                 "Make sure that this bind-mount is in the hub's docker-compose:",
                 "%s" % needed_mount)
         else:
