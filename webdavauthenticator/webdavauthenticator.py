@@ -564,12 +564,12 @@ class WebDAVAuthenticator(Authenticator):
             
         # Prepare user directory:
         if userdir is not None:
-            userdir = prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
+            userdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
         # Prepare sync subdirectory and synchronization:
         # TODO: Instead, call the synchronization module?!
         if userdir is not None:
-            syncdir = prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
+            syncdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
             synchelper.prepare_sync(syncdir)
 
         # Retrieve variables:
