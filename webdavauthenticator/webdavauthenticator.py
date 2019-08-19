@@ -279,7 +279,7 @@ class WebDAVAuthenticator(Authenticator):
         username = data['username']
         webdav_username = data.get('webdav_username',username)
         webdav_password = data.get('webdav_password',password)
-        webdav_mountpoint = data.get('webdav_mountpoint',"WebDAV")
+        webdav_mountpoint = data.get('webdav_mountpoint','')
 
         # WebDAV check here:
         validuser = check_webdav(username,password,webdav_url)
@@ -303,11 +303,6 @@ class WebDAVAuthenticator(Authenticator):
                 logging.warn("Authentication failed: Username contains slash.")
                 return None
 
-            # if not mount, set path to ""
-            if not self.do_webdav_mount:
-                logging.debug('Mounting not requested, setting mountpoint to "".')
-                webdav_mountpoint = ""
-
         # Return dict
         logging.debug("return auth_state")
         return {"name": validuser,
@@ -315,7 +310,7 @@ class WebDAVAuthenticator(Authenticator):
                     "webdav_password": webdav_password,
                     "webdav_username": webdav_username,
                     "webdav_url": webdav_url,
-                    "webdav_mountpoint": webdav_mountpoint,
+                    "webdav_mountpoint": webdav_mountpoint, # empty if no WebDAV requested.
                 }}
 
 
@@ -611,15 +606,14 @@ class WebDAVAuthenticator(Authenticator):
         webdav_password = auth_state['webdav_password']
         webdav_url = auth_state['webdav_url']
 
+        if (webdav_mountpoint == ''):
+            LOGGER.debug('Empty auth_state WebDAV mount point, so no WebDAV ' +
+                'mounting requested by client.')
+            return
+
         if not self.is_server_whitelisted(webdav_url):
             LOGGER.warning('WebDAV mount requested, but server not whitelisted.')
             return
-
-        # No mountpoint given:
-        if webdav_mountpoint == '':
-            webdav_mountpoint = 'WebDAV'
-            LOGGER.info('No WebDAV mount-point provided, using default: ',
-                webdav_mountpoint)
 
         # Some other component will mount the resources (hopefully!), we just
         # provide info by writing in into some file.
