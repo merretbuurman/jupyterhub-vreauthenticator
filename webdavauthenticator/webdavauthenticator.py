@@ -400,7 +400,7 @@ class WebDAVAuthenticator(Authenticator):
 
         # Get path in hub-container:
         if self.is_hub_running_in_docker():
-            userdir_in_hub = self.get_user_dir_path_in_hub(username, dirname)
+            userdir_in_hub = self.get_user_dir_path_in_hub(dirname)
             userdir = userdir_in_hub
         else:
             userdir = userdir_on_host
@@ -411,8 +411,8 @@ class WebDAVAuthenticator(Authenticator):
                 userdir_in_hub, userdir_on_host)
 
             # Some important log messages:
-            basedir_in_hub_docker = os.path.dirname(userdir_in_hub.restrip('/'))
-            basedir_on_host = os.path.dirname(userdir_on_host.restrip('/'))
+            basedir_in_hub_docker = os.path.dirname(userdir_in_hub.rstrip('/'))
+            basedir_on_host = os.path.dirname(userdir_on_host.rstrip('/'))
             needed_mount = "%s:%s" % (basedir_on_host, basedir_in_hub_docker)
             self.log_first_time("Hub runs in docker", 
                 "Make sure that this bind-mount is in the hub's docker-compose:",
