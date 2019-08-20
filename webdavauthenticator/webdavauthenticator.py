@@ -46,8 +46,8 @@ from urllib.parse import urlparse
 
 import logging
 
-import webdavmounter
-import synchelper
+from . import webdavmounter
+from . import synchelper
 
 # Configure logging:
 LOGGER = logging.getLogger(__name__)
