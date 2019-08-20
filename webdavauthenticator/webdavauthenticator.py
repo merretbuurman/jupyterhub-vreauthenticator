@@ -578,7 +578,7 @@ class WebDAVAuthenticator(Authenticator):
             synchelper.prepare_sync(syncdir, self.basedir_for_textfiles)
 
         # Retrieve variables:
-        auth_state = user.get_auth_state()
+        auth_state = yield user.get_auth_state()
 
         if not auth_state:
             LOGGER.warning("auth state not enabled (performing no more pre-spawn activities).")
@@ -590,7 +590,7 @@ class WebDAVAuthenticator(Authenticator):
         elif userdir is None:
             LOGGER.warning('WebDAV mount requested, but makes no sense if no ' +
                 'directories are bind-mounted into the spawned container.')
-        elif self.is_hub_running_in_docker():
+        elif self.is_hub_running_in_docker() and not self.external_webdav_mount:
             LOGGER.warning('WebDAV mount requested, but makes no sense if the ' +
                 'hub is running inside a container.')
         else:
