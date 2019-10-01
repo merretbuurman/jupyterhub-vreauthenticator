@@ -1,5 +1,6 @@
 import os
 import subprocess
+from . import utils
 import logging
 LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ Notes:
 * Need to set c.WebDAVAuthenticator.external_webdav_mount = True
 '''
 def prepare_external_mount(webdav_username, webdav_password, webdav_url, basedir):
-    LOGGER.warning("Host is responsible for WebDAV mount...")
+    utils.log_first_time(LOGGER, "Host is responsible for WebDAV mount...")
     path = os.path.join(basedir, WEBDAV_INFO_FILE)
     LOGGER.debug('Writing the WebDAV info into %s, hoping someone will read it' % path)
     infoline = "%s %s %s" % (webdav_username, webdav_password, webdav_url)

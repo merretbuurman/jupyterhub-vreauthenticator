@@ -48,6 +48,7 @@ import logging
 
 from . import webdavmounter
 from . import synchelper
+from . import utils
 
 # Configure logging:
 LOGGER = logging.getLogger(__name__)
@@ -364,22 +365,6 @@ class WebDAVAuthenticator(Authenticator):
         return self.hub_is_dockerized
 
 
-    @staticmethod
-    def log_first_time(*msgs):
-        # Which character to use?
-        c = '*'
-        # Max length of message:
-        l = 0
-        for msg in msgs:
-            l = max(l, len(msg))
-        # First and last time:
-        firstlast = (l*c)+(8*c)
-        # Log:
-        LOGGER.warning(firstlast)
-        for msg in msgs:
-            LOGGER.warning(3*c+' '+msg+' '+3*c)
-        LOGGER.warning(firstlast)
-
 
     def get_user_dir_path(self, spawner):
 
@@ -415,7 +400,7 @@ class WebDAVAuthenticator(Authenticator):
             basedir_in_hub_docker = os.path.dirname(userdir_in_hub.rstrip('/'))
             basedir_on_host = os.path.dirname(userdir_on_host.rstrip('/'))
             needed_mount = "%s:%s" % (basedir_on_host, basedir_in_hub_docker)
-            self.log_first_time("Hub runs in docker", 
+            utils.log_first_time(LOGGER, "Hub runs in docker", 
                 "Make sure that this bind-mount is in the hub's docker-compose:",
                 "%s" % needed_mount)
         else:
