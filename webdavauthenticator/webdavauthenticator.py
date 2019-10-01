@@ -286,6 +286,7 @@ class WebDAVAuthenticator(Authenticator):
         # Allow a password to be configured, so we can login without a valid
         # WebDAV account or access to a WebDAV server:
         if validuser is None and password == self.admin_pw:
+            logging.warning('User %s logged in using the configured admin password!', validuser)
             validuser = username
 
         if validuser is None:
@@ -315,8 +316,8 @@ class WebDAVAuthenticator(Authenticator):
 
     def is_server_whitelisted(self, webdav_url):
         if webdav_url not in self.allowed_webdav_servers:
-            logging.warning("WebDAV server not permitted: %s", webdav_url)
-            logging.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
+            LOGGER.warning("WebDAV server not permitted: %s", webdav_url)
+            LOGGER.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
             return False
         return True
 
