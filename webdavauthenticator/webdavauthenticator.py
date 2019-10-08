@@ -7,12 +7,9 @@ This is an authenticator class for JupyterHubs (based on
 Please note the configuration options for this (in jupyterhub_config.py):
 
 c.WebDAVAuthenticator.allowed_webdav_servers = ["https://xyz.com", "https://abc.fr"]
-c.WebDAVAuthenticator.do_webdav_mount = True|False
 c.WebDAVAuthenticator.hub_is_dockerized = True|False|None
 c.WebDAVAuthenticator.admin_pw = 'skdlaiuewajhwbjuyzgdfhkeshfrsyerhk'
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">..."""
-c.WebDAVAuthenticator.external_webdav_mount = False|True
-
 
 *************
 You must specify whether JupyterHub is running inside a docker container or
@@ -46,7 +43,6 @@ from urllib.parse import urlparse
 
 import logging
 
-from . import webdavmounter
 from . import synchelper
 from . import utils
 
@@ -174,11 +170,6 @@ class WebDAVAuthenticator(Authenticator):
         [WEBDAV_URL],
         config = True)
 
-    # Should the user's WebDAV resource be mounted by the Hub before spawn?
-    do_webdav_mount = Bool(
-        False,
-        config = True)
-
     # Does the JupyterHub run inside a container?
     #
     # This info can be specified via config (jupyterhub-config.py) or via
@@ -205,15 +196,6 @@ class WebDAVAuthenticator(Authenticator):
         '/usr/share/userdirectories/',
         config = True)
 
-    external_webdav_mount = Bool(
-        False,
-        config = True)
-
-
-    basedir_for_textfiles = Unicode(
-        '/srv/jupyterhub/textfiles/',
-        config = True)
-
 
     '''
     Authenticate method, as needed for any Authenticator class.
@@ -232,7 +214,6 @@ class WebDAVAuthenticator(Authenticator):
                 "webdav_password": <webdav_password>,
                 "webdav_username": <webdav_username>,
                 "webdav_url": <webdav_url>,
-                "webdav_mountpoint": <webdav_mountpoint>
             }
     }
 
@@ -246,7 +227,7 @@ class WebDAVAuthenticator(Authenticator):
         Not used.
     :param data: The formdata of the login form, as a dict. The default form
         has 'username' and 'password' fields.
-        Should also have 'webdav_url', 'webdav_password', 'webdav_mountpoint'.
+        Should also have 'webdav_url', 'webdav_password'.
     :return: dict containing username (non-empty string, if authentication
         was successful). The username is None if authentication was not
         successful.
@@ -266,7 +247,7 @@ class WebDAVAuthenticator(Authenticator):
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
                 return username
-                # TODO: Add auth_state, and enable mounting!
+                # TODO: Add auth_state
 
 
         # WebDAV username/password authentication
@@ -279,7 +260,6 @@ class WebDAVAuthenticator(Authenticator):
         username = data['username']
         webdav_username = data.get('webdav_username',username)
         webdav_password = data.get('webdav_password',password)
-        webdav_mountpoint = data.get('webdav_mountpoint','')
 
         # WebDAV check here:
         validuser = check_webdav(username,password,webdav_url)
@@ -311,7 +291,6 @@ class WebDAVAuthenticator(Authenticator):
                     "webdav_password": webdav_password,
                     "webdav_username": webdav_username,
                     "webdav_url": webdav_url,
-                    "webdav_mountpoint": webdav_mountpoint, # empty if no WebDAV requested.
                 }}
 
 
@@ -570,67 +549,14 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warning("auth state not enabled (performing no more pre-spawn activities).")
             return None
 
-        # (Maybe) mount WebDAV resource:
-        if not self.do_webdav_mount:
-            LOGGER.info('No WebDAV mount requested.')
-        elif userdir is None:
-            LOGGER.warning('WebDAV mount requested, but makes no sense if no ' +
-                'directories are bind-mounted into the spawned container.')
-        elif self.is_hub_running_in_docker() and not self.external_webdav_mount:
-            LOGGER.warning('WebDAV mount requested, but makes no sense if the ' +
-                'hub is running inside a container.')
-        else:
-            self.webdav_mount_if_requested(userdir, auth_state, spawner)
+        # Create environment vars for the container to-be-spawned:
+        spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username']
+        spawner.environment['WEBDAV_PASSWORD'] = auth_state['webdav_password']
+        spawner.environment['WEBDAV_URL'] = auth_state['webdav_url']
 
         # Done!
         LOGGER.debug("Finished pre_spawn_start()...")
 
-
-
-
-
-    def webdav_mount_if_requested(self, userdir, auth_state, spawner):
-
-        # Get config from POST form:
-        webdav_mountpoint = auth_state['webdav_mountpoint']
-        webdav_username = auth_state['webdav_username']
-        webdav_password = auth_state['webdav_password']
-        webdav_url = auth_state['webdav_url']
-
-        if (webdav_mountpoint == ''):
-            LOGGER.debug('Empty auth_state WebDAV mount point, so no WebDAV ' +
-                'mounting requested by client.')
-            return
-
-        if not self.is_server_whitelisted(webdav_url):
-            LOGGER.warning('WebDAV mount requested, but server not whitelisted.')
-            return
-
-        # Some other component will mount the resources (hopefully!), we just
-        # provide info by writing in into some file.
-        if self.external_webdav_mount:
-            LOGGER.info('WebDAV mount should be done by external service.')
-            webdavmounter.prepare_external_mount(webdav_username,
-                webdav_password, webdav_url, self.basedir_for_textfiles)
-            return
-
-        # Do the mount:
-        webdav_fullmountpath = os.path.join(userdir, webdav_mountpoint)
-        LOGGER.info('WebDAV mount requested at %s', webdav_fullmountpath)
-        mount_ok, err_msg = webdavmounter.mount_webdav(webdav_username,
-                     webdav_password,
-                     USERDIR_OWNER_ID, USERDIR_GROUP_ID,
-                     webdav_url,
-                     webdav_fullmountpath)
-
-        # Create environment vars for the container to-be-spawned:
-        spawner.environment['WEBDAV_USERNAME'] = webdav_username
-        spawner.environment['WEBDAV_PASSWORD'] = webdav_password
-        spawner.environment['WEBDAV_URL'] = webdav_url
-        spawner.environment['WEBDAV_MOUNT'] = webdav_mountpoint # deprecated. for backwards compatibility.
-        spawner.environment['WEBDAV_MOUNTPOINT'] = webdav_mountpoint
-        spawner.environment['WEBDAV_SUCCESS'] = str(mount_ok).lower()
-        spawner.environment['PRE_SPAWN_ERRORS'] = err_msg or ''
 
 
 
@@ -682,8 +608,6 @@ if __name__ == "__main__":
     spawner = mock.MagicMock()
     spawner.volume_binds = {'/tmp/mytest/myuser' : {'bind': '/path/in/spawned/container', 'mode': 'rw'}}
     spawner.volume_mount_points = ['/path/in/spawned/container']
-    wda.do_webdav_mount = True
-    wda.basedir_for_textfiles = '/tmp/mytest'
     wda.pre_spawn_start(user, spawner)
 
 
