@@ -168,12 +168,11 @@ class WebDAVAuthenticator(Authenticator):
 
     # White list of auth servers where users may authenticate:
     allowed_auth_servers = List(
-        [WEBDAV_URL],
+        [AUTH_URL],
         config = True)
 
     # White list of WebDAV server from which resources may be mounted:
-    allowed_webdav_servers = List(
-        [WEBDAV_URL],
+    allowed_webdav_servers = List([],
         config = True)
 
     # Does the JupyterHub run inside a container?
@@ -592,7 +591,7 @@ class WebDAVAuthenticator(Authenticator):
 
 if __name__ == "__main__":
     # Test with
-    # python3 webdavauthenticator.py <username> <password>
+    # python3 webdavauthenticator.py <username> <password> <url>
     if not len(sys.argv) >= 3:
         print('Not enough args, please call like this: "python 3 webdavauthenticator.py <username> <password> <url>"')
         exit(1)
@@ -601,7 +600,7 @@ if __name__ == "__main__":
 
     username=sys.argv[1]
     password=sys.argv[2]
-    url = WEBDAV_URL
+    url = AUTH_URL
     if len(sys.argv) == 4:
         url=sys.argv[3]
 
