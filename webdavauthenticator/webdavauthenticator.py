@@ -251,6 +251,7 @@ class WebDAVAuthenticator(Authenticator):
         auth_username = data.get('auth_username', data.get('username', ''))
         auth_password = data.get('auth_password', data.get('password', ''))
         auth_url = data.get('auth_url', AUTH_URL)
+        token_url = data.get('token_url', TOKEN_URL)
         vre_username = data.get('vre_username', auth_username)
         vre_displayname = data.get('vre_displayname', vre_username)
         webdav_mount_username = data.get('webdav_mount_username', '')
@@ -260,7 +261,7 @@ class WebDAVAuthenticator(Authenticator):
         # token authentication
         if token != "":
             logging.debug('Trying token authentication...')
-            success, data = check_token(token, TOKEN_URL)
+            success, data = check_token(token, token_url)
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
