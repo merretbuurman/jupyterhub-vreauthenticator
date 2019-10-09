@@ -296,13 +296,12 @@ class WebDAVAuthenticator(Authenticator):
             # Otherwise we run into an AttributeError: 'NoneType' object has no attribute 'lower'
             # in "/opt/conda/lib/python3.6/site-packages/jupyterhub/auth.py", line 325, trying "username = username.lower()"
 
-        logging.info("Authentication successful for: %s %s",username, validuser)
-        if validuser == username: # isn't this redundant? (QUESTION)
+        logging.info("Authentication successful for: %s", username)
 
-            # safety check (QUESTION: In which case does this matter?)
-            if "/" in validuser:
-                logging.warning("Authentication failed: Username contains slash.")
-                return None
+        # safety check (QUESTION: In which case does this matter?)
+        if "/" in validuser:
+            logging.warning("Authentication problem: Username contains slash.")
+            return None
 
         # Also check WebDAV server for whitelist, before passing it
         # on to the spawner:
