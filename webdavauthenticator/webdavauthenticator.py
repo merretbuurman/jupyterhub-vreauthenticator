@@ -563,12 +563,11 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.info('Preparing user directory...')
             userdir = self.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
-        # Prepare sync subdirectory and synchronization:
-        # TODO: Instead, call the synchronization module?!
+        # Prepare sync subdirectory:
         if userdir is not None:
             LOGGER.info('Preparing directory for synchronization...')
             syncdir = self.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
-            synchelper.prepare_sync(syncdir, self.basedir_for_textfiles)
+            #TODO: If we want to actually synchronize, we must call it here!
 
         # Retrieve variables:
         auth_state = yield user.get_auth_state()
