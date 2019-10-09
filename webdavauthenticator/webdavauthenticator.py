@@ -134,8 +134,8 @@ def check_webdav(username,password,url):
 '''
 Used for authentication via token.
 '''
-def check_token(token, data, url):
-
+def check_token(token, url):
+    
     resp = requests.get(url, headers = {
         "Authorization": "Bearer " + token,
         "Content-type": "application/json"})
@@ -143,12 +143,8 @@ def check_token(token, data, url):
     success = (resp.status_code == 200)
 
     if success:
-        # TODO: What is the difference between the data dict returned by the
-        # authenticator, and from the unity response. Do we need to keep any of
-        # the initial content? Then, maybe merge both before returning?
-        LOGGER.debug('Data before: %s' % data)
         data = resp.json()
-        LOGGER.debug('Data now   : %s' % data)
+        LOGGER.debug('Data from token endpoint: %s' % data)
         return True, data
     else:
         return False, {}
@@ -272,7 +268,7 @@ class WebDAVAuthenticator(Authenticator):
         # token authentication
         if token != "":
             logging.debug('Trying token authentication...')
-            success, data = check_token(token, data, TOKEN_URL)
+            success, data = check_token(token, TOKEN_URL)
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
