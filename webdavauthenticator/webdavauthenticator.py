@@ -442,7 +442,6 @@ class WebDAVAuthenticator(Authenticator):
 
         return userdir_in_hub
 
-    @staticmethod
     def get_user_dir_path_in_spawned(spawner, index=0):
 
         # List of bind-mount mountpoints in the spawned container:
@@ -463,7 +462,6 @@ class WebDAVAuthenticator(Authenticator):
     If the JupyterHub runs inside a container, this path is NOT the path
     we have to use to create user directories etc.
     '''
-    @staticmethod
     def get_user_dir_path_on_host(spawner, index=0):
 
         # IMPORTANT:
@@ -510,7 +508,6 @@ class WebDAVAuthenticator(Authenticator):
     :param userdir_group_id: GID of the directory to be created.
     :param subdir: Name of subdirectory to create.
     '''
-    @staticmethod
     def prepare_user_directory(userdir, userdir_owner_id, userdir_group_id, subdir=None):
 
         # User dir or subdir?
@@ -565,13 +562,13 @@ class WebDAVAuthenticator(Authenticator):
         # Prepare user directory:
         if userdir is not None:
             LOGGER.info('Preparing user directory...')
-            userdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
+            userdir = self.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
         # Prepare sync subdirectory and synchronization:
         # TODO: Instead, call the synchronization module?!
         if userdir is not None:
             LOGGER.info('Preparing directory for synchronization...')
-            syncdir = WebDAVAuthenticator.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
+            syncdir = self.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID, 'sync')
             synchelper.prepare_sync(syncdir, self.basedir_for_textfiles)
 
         # Retrieve variables:
