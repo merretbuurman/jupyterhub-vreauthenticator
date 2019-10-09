@@ -208,19 +208,10 @@ class WebDAVAuthenticator(Authenticator):
     https://universe-docs.readthedocs.io/en/latest/authenticators.html
     https://jupyterhub.readthedocs.io/en/stable/api/auth.html
 
-    Input: The formdata of the login form, as a dict.
+    Input:
+    The formdata of the login form, as a dict.
 
-    Mandatory (for authentication):
-     * auth_url
-     * auth_username
-     * auth_password or auth_token
-
-    Optional (for WebDAV mounts from inside the spawned application)
-     * webdav_mount_url
-     * webdav_mount_username
-     * webdav_mount_password
-
-
+    Output:
     This function supports auth_state, so the return is a dict.
     This dict is available to the spawner, so we can place the
     values in the container's environment as variables.
@@ -229,8 +220,7 @@ class WebDAVAuthenticator(Authenticator):
         "auth_state":
             {
                 "webdav_mount_password": <webdav_mount_password>,
-                "webdav_mount_username": <webdav_mount_username>,
-                "webdav_mount_url": <webdav_mount_url>,
+                ...
             }
     }
 
@@ -243,7 +233,8 @@ class WebDAVAuthenticator(Authenticator):
     :param handler: the current request handler (tornado.web.RequestHandler).
         Not used.
     :param data: The formdata of the login form, as a dict. The default form
-        has 'username' and 'password' fields. Should be customized. See above.
+        has 'username' and 'password' fields. Should be customized and contain
+        more values.
     :return: dict containing username (non-empty string, if authentication
         was successful). The username is None if authentication was not
         successful.
