@@ -69,6 +69,8 @@ root.setLevel(logging.INFO)
 
 # If no url is passed in the login POST form!
 AUTH_URL = "https://b2drop.eudat.eu/remote.php/webdav"
+TOKEN_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo"
+
 
 # User id and group id for the user's directory. Must match those used in the
 # spawned container. Default is 1000:100. In the container they can be changed,
@@ -132,10 +134,9 @@ def check_webdav(username,password,url):
 '''
 Used for authentication via token.
 '''
-def check_token(token, data):
-    UNITY_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo" # TODO Move to top
+def check_token(token, data, url):
 
-    resp = requests.get(UNITY_URL, headers = {
+    resp = requests.get(url, headers = {
         "Authorization": "Bearer " + token,
         "Content-type": "application/json"})
 
@@ -271,7 +272,7 @@ class WebDAVAuthenticator(Authenticator):
         # token authentication
         if token != "":
             logging.debug('Trying token authentication...')
-            success,data = check_token(token, data)
+            success, data = check_token(token, data, TOKEN_URL)
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
