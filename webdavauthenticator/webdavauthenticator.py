@@ -268,7 +268,6 @@ class WebDAVAuthenticator(Authenticator):
                 return username
                 # TODO: Add auth_state
 
-
         # WebDAV username/password authentication
         auth_url = data.get('auth_url', AUTH_URL)
         logging.info('Authentication using username and password via WebDAV: %s' % auth_url)
@@ -277,6 +276,7 @@ class WebDAVAuthenticator(Authenticator):
 
         auth_username = data.get('auth_username', data.get('username', ''))
         auth_password = data.get('auth_password', data.get('password', ''))
+        vre_username = data.get('vre_username', auth_username)
 
         # WebDAV check here:
         validuser = check_webdav(auth_username, auth_password, auth_url)
@@ -311,6 +311,7 @@ class WebDAVAuthenticator(Authenticator):
         logging.debug("return auth_state")
         return {"name": validuser,
                 "auth_state": {
+                    "vre_username": vre_username,
                     "webdav_mount_password": webdav_mount_password,
                     "webdav_mount_username": webdav_mount_username,
                     "webdav_mount_url": webdav_mount_url,
@@ -578,6 +579,7 @@ class WebDAVAuthenticator(Authenticator):
 
         # Create environment vars for the container to-be-spawned:
         # CONTAINER ENVIRONMENT DEFINED HERE:
+        spawner.environment['VRE_USERNAME'] = auth_state['vre_username']
         spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_mount_username']
         spawner.environment['WEBDAV_PASSWORD'] = auth_state['webdav_mount_password']
         spawner.environment['WEBDAV_URL'] = auth_state['webdav_mount_url']
