@@ -7,6 +7,7 @@ This is an authenticator class for JupyterHubs (based on
 Please note the configuration options for this (in jupyterhub_config.py):
 
 c.WebDAVAuthenticator.allowed_webdav_servers = ["https://xyz.com", "https://abc.fr"]
+c.WebDAVAuthenticator.allowed_mount_servers = ["https://xyz.com", "https://abc.fr"]
 c.WebDAVAuthenticator.hub_is_dockerized = True|False|None
 c.WebDAVAuthenticator.admin_pw = 'skdlaiuewajhwbjuyzgdfhkeshfrsyerhk'
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">..."""
@@ -67,7 +68,7 @@ root.setLevel(logging.INFO)
 
 
 # If no url is passed in the login POST form!
-WEBDAV_URL = "https://b2drop.eudat.eu/remote.php/webdav"
+AUTH_URL = "https://b2drop.eudat.eu/remote.php/webdav"
 
 # User id and group id for the user's directory. Must match those used in the
 # spawned container. Default is 1000:100. In the container they can be changed,
@@ -165,6 +166,11 @@ class WebDAVAuthenticator(Authenticator):
         "",
         config = True)
 
+    # White list of auth servers where users may authenticate:
+    allowed_auth_servers = List(
+        [WEBDAV_URL],
+        config = True)
+
     # White list of WebDAV server from which resources may be mounted:
     allowed_webdav_servers = List(
         [WEBDAV_URL],
@@ -206,14 +212,29 @@ class WebDAVAuthenticator(Authenticator):
     https://universe-docs.readthedocs.io/en/latest/authenticators.html
     https://jupyterhub.readthedocs.io/en/stable/api/auth.html
 
-    This function supports auth_state, so the return is a dict:
+    Input: The formdata of the login form, as a dict.
+
+    Mandatory (for authentication):
+     * auth_url
+     * auth_username
+     * auth_password or auth_token
+
+    Optional (for WebDAV mounts from inside the spawned application)
+     * webdav_mount_url
+     * webdav_mount_username
+     * webdav_mount_password
+
+
+    This function supports auth_state, so the return is a dict.
+    This dict is available to the spawner, so we can place the
+    values in the container's environment as variables.
     {
         "name": <username>,
         "auth_state":
             {
-                "webdav_password": <webdav_password>,
-                "webdav_username": <webdav_username>,
-                "webdav_url": <webdav_url>,
+                "webdav_mount_password": <webdav_mount_password>,
+                "webdav_mount_username": <webdav_mount_username>,
+                "webdav_mount_url": <webdav_mount_url>,
             }
     }
 
@@ -226,8 +247,7 @@ class WebDAVAuthenticator(Authenticator):
     :param handler: the current request handler (tornado.web.RequestHandler).
         Not used.
     :param data: The formdata of the login form, as a dict. The default form
-        has 'username' and 'password' fields.
-        Should also have 'webdav_url', 'webdav_password'.
+        has 'username' and 'password' fields. Should be customized. See above.
     :return: dict containing username (non-empty string, if authentication
         was successful). The username is None if authentication was not
         successful.
@@ -239,7 +259,7 @@ class WebDAVAuthenticator(Authenticator):
         # so logging.info(...) has to be used instead of LOGGER.info(...)
 
         # token authentication
-        token = data.get("token","")
+        token = data.get("auth_token","")
         if token != "":
             logging.debug('Trying token authentication...')
             success,data = check_token(token, data)
@@ -251,18 +271,16 @@ class WebDAVAuthenticator(Authenticator):
 
 
         # WebDAV username/password authentication
-        webdav_url = data.get('webdav_url', WEBDAV_URL)
-        logging.info('Authentication using username and password via WebDAV: %s' % webdav_url)
-        if not self.is_server_whitelisted(webdav_url):
+        auth_url = data.get('auth_url', AUTH_URL)
+        logging.info('Authentication using username and password via WebDAV: %s' % auth_url)
+        if not self.is_auth_server_whitelisted(auth_url):
             return None
 
-        password = data.get("password","")
-        username = data['username']
-        webdav_username = data.get('webdav_username',username)
-        webdav_password = data.get('webdav_password',password)
+        auth_username = data.get('auth_username', data.get('username', ''))
+        auth_password = data.get('auth_password', data.get('password', ''))
 
         # WebDAV check here:
-        validuser = check_webdav(username,password,webdav_url)
+        validuser = check_webdav(auth_username, auth_password, auth_url)
 
         # Allow a password to be configured, so we can login without a valid
         # WebDAV account or access to a WebDAV server:
@@ -284,20 +302,34 @@ class WebDAVAuthenticator(Authenticator):
                 logging.warning("Authentication failed: Username contains slash.")
                 return None
 
-        # Return dict
+        # Also check WebDAV server for whitelist, before passing it
+        # on to the spawner:
+        if not self.is_mount_server_whitelisted(webdav_mount_url):
+            webdav_mount_url = ''
+
+        # Return dict for use by spawner
+        # See https://jupyterhub.readthedocs.io/en/stable/reference/authenticators.html#using-auth-state
         logging.debug("return auth_state")
         return {"name": validuser,
                 "auth_state": {
-                    "webdav_password": webdav_password,
-                    "webdav_username": webdav_username,
-                    "webdav_url": webdav_url,
+                    "webdav_mount_password": webdav_mount_password,
+                    "webdav_mount_username": webdav_mount_username,
+                    "webdav_mount_url": webdav_mount_url,
                 }}
 
 
-    def is_server_whitelisted(self, webdav_url):
+    def is_auth_server_whitelisted(self, auth_url):
+        if auth_url not in self.allowed_auth_servers:
+            LOGGER.warning("WebDAV server not permitted for authentication: %s", auth_url)
+            LOGGER.debug("Only these WebDAV servers are allowed for authentication: %s", self.allowed_auth_servers)
+            return False
+        return True
+
+
+    def is_mount_server_whitelisted(self, webdav_url):
         if webdav_url not in self.allowed_webdav_servers:
-            LOGGER.warning("WebDAV server not permitted: %s", webdav_url)
-            LOGGER.debug("Only these WebDAV servers are allowed: %s", self.allowed_webdav_servers)
+            LOGGER.warning("WebDAV server not permitted for data access: %s", webdav_url)
+            LOGGER.debug("Only these WebDAV servers are allowed for data access: %s", self.allowed_webdav_servers)
             return False
         return True
 
@@ -550,9 +582,10 @@ class WebDAVAuthenticator(Authenticator):
             return None
 
         # Create environment vars for the container to-be-spawned:
-        spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_username']
-        spawner.environment['WEBDAV_PASSWORD'] = auth_state['webdav_password']
-        spawner.environment['WEBDAV_URL'] = auth_state['webdav_url']
+        # CONTAINER ENVIRONMENT DEFINED HERE:
+        spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_mount_username']
+        spawner.environment['WEBDAV_PASSWORD'] = auth_state['webdav_mount_password']
+        spawner.environment['WEBDAV_URL'] = auth_state['webdav_mount_url']
 
         # Done!
         LOGGER.debug("Finished pre_spawn_start()...")
