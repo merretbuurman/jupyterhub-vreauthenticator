@@ -257,8 +257,18 @@ class WebDAVAuthenticator(Authenticator):
         # For some reason, the LOGGER variable is not visible in here,
         # so logging.info(...) has to be used instead of LOGGER.info(...)
 
+        # Get variables from the login form:
+        auth_username = data.get('auth_username', data.get('username', ''))
+        auth_password = data.get('auth_password', data.get('password', ''))
+        auth_url = data.get('auth_url', AUTH_URL)
+        vre_username = data.get('vre_username', auth_username)
+        vre_displayname = data.get('vre_displayname', vre_username)
+        token = data.get('auth_token', '')
+        webdav_mount_username = data.get('webdav_mount_username', '')
+        webdav_mount_password = data.get('webdav_mount_password', '')
+        webdav_mount_url = data.get('webdav_mount_url', '')
+
         # token authentication
-        token = data.get("auth_token","")
         if token != "":
             logging.debug('Trying token authentication...')
             success,data = check_token(token, data)
@@ -269,17 +279,9 @@ class WebDAVAuthenticator(Authenticator):
                 # TODO: Add auth_state
 
         # WebDAV username/password authentication
-        auth_url = data.get('auth_url', AUTH_URL)
         logging.info('Authentication using username and password via WebDAV: %s' % auth_url)
         if not self.is_auth_server_whitelisted(auth_url):
             return None
-
-        auth_username = data.get('auth_username', data.get('username', ''))
-        auth_password = data.get('auth_password', data.get('password', ''))
-
-        # More variables from Login form
-        vre_username = data.get('vre_username', auth_username)
-        vre_displayname = data.get('vre_displayname', vre_username)
 
         # WebDAV check here:
         validuser = check_webdav(auth_username, auth_password, auth_url)
