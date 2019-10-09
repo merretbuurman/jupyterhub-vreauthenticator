@@ -1,6 +1,11 @@
 
+FIRST_LOG = True
 
 def log_first_time(LOGGER, *msgs):
+
+    if not FIRST_LOG:
+        return
+
     # Which character to use?
     c = '*'
     # Max length of message:
@@ -15,3 +20,5 @@ def log_first_time(LOGGER, *msgs):
         filled = msg.ljust(l)
         LOGGER.warning(3*c+' '+filled+' '+3*c)
     LOGGER.warning(firstlast)
+
+    FIRST_LOG = False
