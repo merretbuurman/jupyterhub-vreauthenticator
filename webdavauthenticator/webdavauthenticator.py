@@ -246,12 +246,13 @@ class WebDAVAuthenticator(Authenticator):
         # so logging.info(...) has to be used instead of LOGGER.info(...)
 
         # Get variables from the login form:
+        # DEFINITION OF REQUIRED VALUES IN LOGIN FORM HERE:
+        token = data.get('auth_token', '')
         auth_username = data.get('auth_username', data.get('username', ''))
         auth_password = data.get('auth_password', data.get('password', ''))
         auth_url = data.get('auth_url', AUTH_URL)
         vre_username = data.get('vre_username', auth_username)
         vre_displayname = data.get('vre_displayname', vre_username)
-        token = data.get('auth_token', '')
         webdav_mount_username = data.get('webdav_mount_username', '')
         webdav_mount_password = data.get('webdav_mount_password', '')
         webdav_mount_url = data.get('webdav_mount_url', '')
