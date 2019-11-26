@@ -15,6 +15,7 @@ DOCKER_NETWORK_NAME = os.environ['DOCKER_NETWORK_NAME']
 
 ##
 ## Optional, have defaults:
+HUB_IP = os.environ.get('HUB_IP', 'hub')
 RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
@@ -37,9 +38,13 @@ c.DockerSpawner.volumes = { '/mnt/data/jupyterhub-user/jupyterhub-user-{username
 # docker image
 c.DockerSpawner.image = DOCKER_JUPYTER_IMAGE
 
-# The docker instances need access to the Hub, so the default loopback port doesn't work:
-from jupyter_client.localinterfaces import public_ips
-c.JupyterHub.hub_ip = public_ips()[0]
+##
+## Pass the IP where the instances can access the JupyterHub instance
+## The docker instances need access to the Hub, so the default loopback port doesn't work:
+##from jupyter_client.localinterfaces import public_ips
+##c.JupyterHub.hub_ip = public_ips()[0]
+## Instead, containers will access hub by container name on the Docker network
+c.JupyterHub.hub_ip = HUB_IP
 
 # Pass the network name as argument to spawned containers
 c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
