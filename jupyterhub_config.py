@@ -146,6 +146,30 @@ if ADMIN_PW is not None:
   c.WebDAVAuthenticator.admin_pw = ADMIN_PW
 
 
+###########################
+## Run as different user ##
+###########################
+
+## Default is 1000:100
+## See:
+## https://groups.google.com/forum/#!topic/jupyter/-VJXHy5hnfM
+## Two steps are needed:
+## (1/2): Tell it to spawn as root:
+c.DockerSpawner.extra_create_kwargs = {'user' : '0'}
+
+## (2/2): Tell it to run as NB_UID:NB_GID:
+## Note: We will also chown the directory to this user, in "pre_spawn_start"
+container_env = {'SPAWNER_ENV_KEY': 'SPAWNER_ENV_VALUE'}
+
+if RUN_AS_USER is not None:
+  container_env['NB_UID'] = RUN_AS_USER
+
+if RUN_AS_GROUP is not None:
+  container_env['NB_GID'] = RUN_AS_GROUP
+
+c.DockerSpawner.environment = container_env
+
+
 ##################
 ## SSL settings ##
 ##################
