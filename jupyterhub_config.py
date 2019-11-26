@@ -20,7 +20,8 @@ RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 ADMIN_PW = os.environ.get('ADMIN_PW', None)
-
+WHITELIST_AUTH = os.environ.get('WHITELIST_AUTH', None)
+WHITELIST_WEBDAV = os.environ.get('WHITELIST_WEBDAV', None)
 
 
 # spawn with Docker
@@ -82,12 +83,51 @@ if os.path.exists(certfile):
 # Logo    
 c.JupyterHub.logo_file = "/usr/local/share/jupyter/hub/static/images/sdn.png"
 
-c.WebDAVAuthenticator.allowed_webdav_servers = [
-    "https://nc.seadatacloud.ml/remote.php/webdav",
+##
+## White lists for authentication and WebDAV servers:
+white_auth = [
     "https://b2drop.eudat.eu/remote.php/webdav",
     "https://dox.ulg.ac.be/remote.php/webdav",
     "https://dox.uliege.be/remote.php/webdav",
+    "https://dummy",
 ]
+
+white_webdav = [
+    "https://b2drop.eudat.eu/remote.php/webdav",
+    "https://dox.ulg.ac.be/remote.php/webdav",
+    "https://dox.uliege.be/remote.php/webdav",
+    "https://dummy",
+]
+
+'''
+Helper to parse whitelisted servers, add the protocol to
+them (https), and if http is allowed, also allow https.
+'''
+def add_to_whitelist(env_value_string, whitelist):
+  # Allow comma separated list also with spaces:
+  urls = env_value_string.split(',')
+  for url in urls:
+    url = url.strip()
+
+    # If no protocol given, assume https:
+    if not str.startswith(url, 'http'):
+      url = 'https://%s' % url
+
+    # Append:
+    whitelist.append(url)
+
+    # Always allow https:
+    if str.startswith(url, 'http:'):
+      whitelist.append(url.replace('http:', 'https:'))
+
+if WHITELIST_AUTH is not None and isinstance(WHITELIST_AUTH, str):
+  add_to_whitelist(WHITELIST_AUTH, white_auth)
+
+if WHITELIST_WEBDAV is not None and isinstance(WHITELIST_WEBDAV, str):
+  add_to_whitelist(WHITELIST_WEBDAV, white_webdav)
+
+c.WebDAVAuthenticator.allowed_auth_servers = white_auth 
+c.WebDAVAuthenticator.allowed_webdav_servers = white_webdav
 
 ## Set admin password
 if ADMIN_PW is not None:
