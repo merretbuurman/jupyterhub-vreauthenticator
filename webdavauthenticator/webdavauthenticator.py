@@ -44,7 +44,6 @@ from urllib.parse import urlparse
 
 import logging
 
-from . import synchelper
 from . import utils
 
 # Configure logging:
