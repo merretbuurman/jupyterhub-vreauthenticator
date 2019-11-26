@@ -19,6 +19,7 @@ HUB_IP = os.environ.get('HUB_IP', 'hub')
 RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
+ADMIN_PW = os.environ.get('ADMIN_PW', None)
 
 
 
@@ -88,6 +89,9 @@ c.WebDAVAuthenticator.allowed_webdav_servers = [
     "https://dox.uliege.be/remote.php/webdav",
 ]
 
+## Set admin password
+if ADMIN_PW is not None:
+  c.WebDAVAuthenticator.admin_pw = ADMIN_PW
 
 # Login form
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">
