@@ -266,6 +266,9 @@ class WebDAVAuthenticator(Authenticator):
                 logging.info('Token authentication successful for %s' % username)
                 return username
                 # TODO: Add auth_state
+            else:
+                logging.info('Token authentication not successful!')
+                return None
 
         # WebDAV username/password authentication
         logging.info('Authentication using username and password via WebDAV: %s' % auth_url)
