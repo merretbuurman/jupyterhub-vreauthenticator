@@ -198,6 +198,11 @@ c.JupyterHub.ssl_key = '/srv/jupyterhub/ssl/private/myhost.key'
 c.JupyterHub.hub_ip = HUB_IP
 
 ##
+## Connect containers to this Docker network
+c.DockerSpawner.use_internal_ip = True
+c.DockerSpawner.network_name = DOCKER_NETWORK_NAME
+
+##
 ## Pass the network name as argument to spawned containers
 c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
 
