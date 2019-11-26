@@ -24,6 +24,7 @@ LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 ADMIN_PW = os.environ.get('ADMIN_PW', None)
 WHITELIST_AUTH = os.environ.get('WHITELIST_AUTH', None)
 WHITELIST_WEBDAV = os.environ.get('WHITELIST_WEBDAV', None)
+HTTP_TIMEOUT = os.environ.get('HTTP_TIMEOUT', '60')
 
 
 ##
@@ -81,7 +82,7 @@ if LOG_LEVEL == 'DEBUG':
 ## Timeout (in seconds) before giving up on a spawned HTTP server
 ## Once a server has successfully been spawned, this is the amount of time we
 ## wait before assuming that the server is unable to accept connections.
-c.Spawner.http_timeout = 60
+c.Spawner.http_timeout = int(HTTP_TIMEOUT)
 
 ##
 ## Set whitelists for users
