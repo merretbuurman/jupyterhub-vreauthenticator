@@ -31,20 +31,36 @@ WHITELIST_WEBDAV = os.environ.get('WHITELIST_WEBDAV', None)
 ## https://github.com/jupyterhub/dockerspawner#memory-limits
 c.Spawner.mem_limit = MEMORY_LIMIT
 
-# spawn with Docker
+##
+## spawn with Docker
 c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
-# Explicitly set notebook directory because we'll be mounting a host volume to
-# it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
-# user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
-# We follow the same convention.
+
+##
+## Notebook Directory
+## TODO: What is this setting good for?
+## TODO: Do we really want to allow setting this from env?
+##
+## Explicitly set notebook directory because we'll be mounting a host volume to
+## it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
+## user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
+## We follow the same convention.
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir
 
-# Mount the real user's Docker volume on the host to the notebook user's
-# notebook directory in the container
-c.DockerSpawner.volumes = { '/mnt/data/jupyterhub-user/jupyterhub-user-{username}': notebook_dir }
+##
+## Mount the user directory
+## We mount the <username>_sync directory, which is the synchronizer target directory!
+## We mount it to a subdirectory of the Notebook directory (so that the sync dir does not get
+## crowded with weird Jupyter stuff...
+##)
+## TODO: Where does username come from?
+##
+c.DockerSpawner.volumes = {
+  '/mnt/data/jupyterhub-user/jupyterhub-user-{username}': notebook_dir
+}
 
-# docker image
+##
+## Which docker image to be spawned
 c.DockerSpawner.image = DOCKER_JUPYTER_IMAGE
 
 ##
@@ -52,28 +68,25 @@ c.DockerSpawner.image = DOCKER_JUPYTER_IMAGE
 c.DockerSpawner.prefix = CONTAINER_PREFIX
 
 ##
-## Pass the IP where the instances can access the JupyterHub instance
-## The docker instances need access to the Hub, so the default loopback port doesn't work:
-##from jupyter_client.localinterfaces import public_ips
-##c.JupyterHub.hub_ip = public_ips()[0]
-## Instead, containers will access hub by container name on the Docker network
-c.JupyterHub.hub_ip = HUB_IP
-
-# Pass the network name as argument to spawned containers
-c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
-
-# WebDAVAuthenticator
+## WebDAVAuthenticator
 c.JupyterHub.authenticator_class = 'webdavauthenticator.WebDAVAuthenticator'
 
-# Set the log level by value or name.
+##
+## Set the log level by value or name.
 c.JupyterHub.log_level = LOG_LEVEL
 if LOG_LEVEL == 'DEBUG':
   c.DockerSpawner.debug = True
 
+
+##
+## Set whitelists for users
+## TODO Do we want to use this?
 #c.Authenticator.whitelist = whitelist = set()
 c.Authenticator.admin_users = admin = set()
 
-# save credentials to pass them to container
+##
+## Enable passing env variables to containers from the 
+## authenticate-method (which has the login form...)
 c.Authenticator.enable_auth_state = True
 
 
@@ -91,8 +104,10 @@ if os.path.exists(keyfile):
 if os.path.exists(certfile):
     c.JupyterHub.ssl_cert = certfile
 
-# Logo    
+##
+## Logo    
 c.JupyterHub.logo_file = "/usr/local/share/jupyter/hub/static/images/sdn.png"
+
 
 ##
 ## White lists for authentication and WebDAV servers:
@@ -140,11 +155,33 @@ if WHITELIST_WEBDAV is not None and isinstance(WHITELIST_WEBDAV, str):
 c.WebDAVAuthenticator.allowed_auth_servers = white_auth 
 c.WebDAVAuthenticator.allowed_webdav_servers = white_webdav
 
+##
 ## Set admin password
 if ADMIN_PW is not None:
   c.WebDAVAuthenticator.admin_pw = ADMIN_PW
 
-# Login form
+#######################
+## Docker networking ##
+#######################
+
+##
+## Pass the IP where the instances can access the JupyterHub instance
+## The docker instances need access to the Hub, so the default loopback port doesn't work:
+##from jupyter_client.localinterfaces import public_ips
+##c.JupyterHub.hub_ip = public_ips()[0]
+## Instead, containers will access hub by container name on the Docker network
+c.JupyterHub.hub_ip = HUB_IP
+
+##
+## Pass the network name as argument to spawned containers
+c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
+
+################
+## Login form ##
+################
+
+##
+## Custom login form
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">
   <div class="auth-form-header">
     Sign in
