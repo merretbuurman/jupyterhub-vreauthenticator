@@ -324,9 +324,17 @@ class WebDAVAuthenticator(Authenticator):
             else:
                 LOGGER.debug('We will pass on: webdav_mount_url=%s (passed the white list check)' % webdav_mount_url)
 
+        # What is the environment here?
+        LOGGER.debug('This is the current environment in "authenticate": %s' % os.environ)
+        # Contains vars set in docker-compose!
+        # Contains vars set in Dockerfile
+        # Does not contain the vars set in "c.DockerSpawner.environment" - why not? TODO
+        # And: PATH, HOSTNAME (docker id of the hub), 'DEBIAN_FRONTEND': 'noninteractive', 'LANG': 'C.UTF-8', 'HOME': '/root'
+
         # Return dict for use by spawner
         # See https://jupyterhub.readthedocs.io/en/stable/reference/authenticators.html#using-auth-state
-        auth_state = {"name": validuser,
+        auth_state = {
+                "name": validuser,
                 "auth_state": {
                     "vre_username": vre_username,
                     "vre_displayname": vre_displayname,
@@ -343,6 +351,7 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warning("WebDAV server not permitted for authentication: %s", auth_url)
             LOGGER.debug("Only these WebDAV servers are allowed for authentication: %s", self.allowed_auth_servers)
             return False
+        LOGGER.debug('Passed whitelist test: %s (for authentication)' % auth_url)
         return True
 
 
@@ -351,6 +360,7 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.warning("WebDAV server not permitted for data access: %s", webdav_url)
             LOGGER.debug("Only these WebDAV servers are allowed for data access: %s", self.allowed_webdav_servers)
             return False
+        LOGGER.debug('Passed whitelist test: %s (for WebDAV)' % webdav_url)
         return True
 
     '''
