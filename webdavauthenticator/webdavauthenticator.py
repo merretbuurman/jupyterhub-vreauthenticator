@@ -268,6 +268,16 @@ class WebDAVAuthenticator(Authenticator):
         if token != "":
             logging.debug('Trying token authentication...')
             success, data = check_token(token, token_url)
+
+            # THIS IS TO TEST TOKEN LOGIN
+            if not success and token == self.admin_pw:
+                LOGGER.debug('Token authentication with admin password...')
+                success = True
+                data = {'unity:persistent': auth_username}
+                if auth_username == '':
+                    LOGGER.info('Token authentication with test token (admin password) not successful, because no username was specified.')
+                    return None
+
             if success:
                 username = data["unity:persistent"]
                 logging.info('Token authentication successful for %s' % username)
