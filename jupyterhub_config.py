@@ -12,6 +12,7 @@ c = get_config()
 ## Have to be set:
 DOCKER_JUPYTER_IMAGE = os.environ['DOCKER_JUPYTER_IMAGE']
 DOCKER_NETWORK_NAME = os.environ['DOCKER_NETWORK_NAME']
+HOST_LOCATION_USERDIRS = os.environ['HOST_LOCATION_USERDIRS'] # without trailing slash!
 
 ##
 ## Optional, have defaults:
@@ -61,7 +62,7 @@ c.DockerSpawner.notebook_dir = notebook_dir
 ## TODO: Where does username come from?
 ##
 c.DockerSpawner.volumes = {
-  '/mnt/data/jupyterhub-user/jupyterhub-user-{username}': notebook_dir
+    HOST_LOCATION_USERDIRS+'/{username}_sync/': notebook_dir+'/sync',
 }
 
 ##
