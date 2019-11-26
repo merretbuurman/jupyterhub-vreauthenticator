@@ -89,21 +89,6 @@ c.Authenticator.admin_users = admin = set()
 ## authenticate-method (which has the login form...)
 c.Authenticator.enable_auth_state = True
 
-
-join = os.path.join
-here = os.path.dirname(__file__)
-
-c.JupyterHub.port = 443
-
-# ssl config
-ssl = join(here, 'ssl')
-keyfile = join(ssl, 'ssl.key')
-certfile = join(ssl, 'ssl.cert')
-if os.path.exists(keyfile):
-    c.JupyterHub.ssl_key = keyfile
-if os.path.exists(certfile):
-    c.JupyterHub.ssl_cert = certfile
-
 ##
 ## Logo    
 c.JupyterHub.logo_file = "/usr/local/share/jupyter/hub/static/images/sdn.png"
@@ -160,6 +145,22 @@ c.WebDAVAuthenticator.allowed_webdav_servers = white_webdav
 if ADMIN_PW is not None:
   c.WebDAVAuthenticator.admin_pw = ADMIN_PW
 
+
+##################
+## SSL settings ##
+##################
+
+## If hub runs inside a container, do not change these, but mount
+## the cert and key to the correct location.
+## Both must be set!
+
+## Path to SSL certificate file for the public facing interface of the proxy 
+c.JupyterHub.ssl_cert = '/srv/jupyterhub/ssl/certs/myhost_cert_and_chain.crt'
+
+## Path to SSL key file for the public facing interface of the proxy
+c.JupyterHub.ssl_key = '/srv/jupyterhub/ssl/private/myhost.key'
+
+
 #######################
 ## Docker networking ##
 #######################
@@ -175,6 +176,10 @@ c.JupyterHub.hub_ip = HUB_IP
 ##
 ## Pass the network name as argument to spawned containers
 c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
+
+##
+## On which port does the hub run (inside its container):
+c.JupyterHub.port = 443
 
 ################
 ## Login form ##
