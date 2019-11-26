@@ -311,8 +311,7 @@ class WebDAVAuthenticator(Authenticator):
 
         # Return dict for use by spawner
         # See https://jupyterhub.readthedocs.io/en/stable/reference/authenticators.html#using-auth-state
-        logging.debug("return auth_state")
-        return {"name": validuser,
+        auth_state = {"name": validuser,
                 "auth_state": {
                     "vre_username": vre_username,
                     "vre_displayname": vre_displayname,
@@ -320,6 +319,8 @@ class WebDAVAuthenticator(Authenticator):
                     "webdav_mount_username": webdav_mount_username,
                     "webdav_mount_url": webdav_mount_url,
                 }}
+        LOGGER.debug("return auth_state: %s" % auth_state)
+        return auth_state
 
 
     def is_auth_server_whitelisted(self, auth_url):
