@@ -77,10 +77,8 @@ TOKEN_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo"
 # inside the container, so we cannot use them here.
 # See:
 # https://github.com/jupyter/docker-stacks/blob/7a3e968dd21268c4b7a6746458ac34e5c3fc17b9/base-notebook/Dockerfile#L10
-# TODO They can be changed in the docker, so we might need to make this
-# configurable! Or use post_spawn_stop to get them from the container somehow?
-USERDIR_OWNER_ID = 1000
-USERDIR_GROUP_ID = 100
+USERDIR_OWNER_ID_DEFAULT = 1000
+USERDIR_GROUP_ID_DEFAULT = 100
 
 
 
@@ -564,6 +562,13 @@ class WebDAVAuthenticator(Authenticator):
 
         # Get userdir name:
         userdir = self.get_user_dir_path(spawner)
+
+        # Set userdir owner id:
+        USERDIR_OWNER_ID = os.environ.get('RUN_AS_USER',  None) or USERDIR_OWNER_ID_DEFAULT
+        USERDIR_GROUP_ID = os.environ.get('RUN_AS_GROUP', None) or USERDIR_GROUP_ID_DEFAULT
+        USERDIR_OWNER_ID = int(USERDIR_OWNER_ID)
+        USERDIR_GROUP_ID = int(USERDIR_GROUP_ID)
+        LOGGER.info('Will chown to : "%s:%s" (%s, %s)' % (USERDIR_OWNER_ID, USERDIR_GROUP_ID, type(USERDIR_OWNER_ID), type(USERDIR_GROUP_ID)))
             
         # Prepare user directory:
         # This is the directory where the docker spawner will mount the <username>_sync directory!

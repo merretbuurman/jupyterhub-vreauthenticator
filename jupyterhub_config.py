@@ -3,6 +3,18 @@ import os
 
 c = get_config()
 
+
+###
+### Get all env variables
+###
+
+##
+## Optional, have defaults:
+RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
+RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
+
+
+
 # spawn with Docker
 c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 # Explicitly set notebook directory because we'll be mounting a host volume to
