@@ -230,15 +230,16 @@ c.JupyterHub.port = 443
 ## Custom login form
 c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="post" role="form">
   <div class="auth-form-header">
-    Sign in
+    Alternative Login
   </div>
   <div class='auth-form-body'>
-
-    <p>SeaDataCloud Virtual Research Environment<p>
-    <p>Jupyterhub for DIVAnd</p>
-
+    <h3>SeaDataCloud Virtual Research Environment</h3>
+    
+    <p>This is a JupyterHub for the SeaDataCloud VRE. This is a test login, you can <em>not</em> use your <em>Marine-ID</em>.</p>
+    <p>If you see this and you did log in via Marine-Id, there has been an error on the server, and we would be extremely grateful if you could notify us (when it happened, what is your Marine-Id, ...)!</p>
     <div id="form_elements" style="display: none" >
-        <label for="username_input">WebDAV username:</label>
+
+        <label for="username_input">VRE username:</label>
         <input
           id="username_input"
           type="text"
@@ -246,38 +247,68 @@ c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="p
           autocorrect="off"
           class="form-control"
           name="username"
-          val=""
+          value=""
           tabindex="1"
           autofocus="autofocus"
         />
-        <label for='password_input'>WebDAV password:</label>
+
+        <label for='password_input'>VRE password:</label>
         <input
           type="password"
           class="form-control"
-          name="password"
+          name="auth_password"
           id="password_input"
           tabindex="2"
-        />
+        /> 
 
+        <label for='auth_url_input'>Authentication URL:</label>
         <input
           type="text"
           class="form-control"
-          name="token"
+          name="auth_url"
+          id="auth_url_input"
+          value = "https://dummy"
+        />
+
+        <p><br/>Only for testing:</p>
+
+        <label for='token_input'>VRE token:</label>
+        <input
+          type="text"
+          class="form-control"
+          name="auth_token"
           id="token_input"
-          style="display: none"
         />
 
-        <label for='webdav_url_input'>WebDAV URL:</label>
+        <p><br/>WebDAV info is optional!</p>
 
+        <label for='webdav_mount_user_input'>WebDAV Username (optional):</label>
         <input
           type="text"
           class="form-control"
-          name="webdav_url"
-          id="webdav_url_input"
+          name="webdav_mount_username"
+          id="webdav_mount_user_input"
           xstyle="display: none"
-          value = "https://b2drop.eudat.eu/remote.php/webdav"
+          value = "santaclaus"
         />
 
+        <label for='webdav_mount_password_input'>WebDAV password (optional):</label>
+        <input
+          type="password"
+          class="form-control"
+          name="webdav_mount_password"
+          id="webdav_mount_password_input"
+        /> 
+
+        <label for='webdav_mount_url_input'>WebDAV URL (optional):</label>
+        <input
+          type="text"
+          class="form-control"
+          name="webdav_mount_url"
+          id="webdav_mount:url_input"
+          xstyle="display: none"
+          value = "https://dummy"
+        />
 
         <input
           type="submit"
@@ -290,7 +321,6 @@ c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="p
   </div>
 </form>
 <script>
-
 function parse_query_string(query) {
   var vars = query.split("&");
   var query_string = {};
@@ -310,26 +340,19 @@ function parse_query_string(query) {
   }
   return query_string;
 }
-
-
 // substitute username and token from query string if provided
 // and submit form for login.
-
 var query = window.location.search.substring(1);
 var qs = parse_query_string(query);
-
 if (qs.username) {
   document.getElementById("username_input").value  = qs.username;
 }
-
 if (qs.password) {
    document.getElementById("password_input").value  = qs.password;
 }
-
 if (qs.webdav_url) {
-   document.getElementById("webdav_url_input").value  = qs.webdav_url;
+   document.getElementById("auth_url_input").value  = qs.auth_url;
 }
-
 if (qs.token) {
    document.getElementById("token_input").value  = qs.token;
    document.getElementsByTagName("form")[0].submit();
@@ -337,8 +360,8 @@ if (qs.token) {
 else {
   document.getElementById("form_elements").style.display = "block"
 }
-
 </script>
 
 
 """
+
