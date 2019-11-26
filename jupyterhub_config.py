@@ -102,7 +102,7 @@ c.Authenticator.enable_auth_state = True
 
 ##
 ## Logo file
-c.JupyterHub.logo_file = "/usr/local/share/jupyter/hub/static/images/sdn.png"
+c.JupyterHub.logo_file = "/usr/local/share/jupyter/hub/static/images/logo.png"
 
 
 ##
