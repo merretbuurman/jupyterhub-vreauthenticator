@@ -12,6 +12,7 @@ c = get_config()
 ## Optional, have defaults:
 RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
 
 
@@ -40,7 +41,9 @@ c.JupyterHub.hub_ip = public_ips()[0]
 c.JupyterHub.authenticator_class = 'webdavauthenticator.WebDAVAuthenticator'
 
 # Set the log level by value or name.
-c.JupyterHub.log_level = 'DEBUG'
+c.JupyterHub.log_level = LOG_LEVEL
+if LOG_LEVEL == 'DEBUG':
+  c.DockerSpawner.debug = True
 
 #c.Authenticator.whitelist = whitelist = set()
 c.Authenticator.admin_users = admin = set()

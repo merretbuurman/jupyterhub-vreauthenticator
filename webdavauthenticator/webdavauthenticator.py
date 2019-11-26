@@ -52,7 +52,14 @@ LOGGER = logging.getLogger(__name__)
 # Default log level seems to be WARNING and ERROR.
 # Adapt log level for this module here:
 root = logging.getLogger()
-root.setLevel(logging.INFO)
+default_lvl = 'INFO'
+lvl = os.environ.get('LOG_LEVEL',  default_lvl)
+lvl = logging.getLevelName(lvl)
+try:
+    root.setLevel(lvl)
+except ValueError as e:
+    LOGGER.warn('Could not understand log level "%s". Using "%s" instead.' % (lvl, default_lvl))
+    root.setLevel(logging.getLevelName(default_lvl))
 
 # The default format seems to be:
 # WARNING:packagename.modulename:This is the Message
