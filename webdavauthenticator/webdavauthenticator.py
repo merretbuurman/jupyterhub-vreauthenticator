@@ -143,10 +143,12 @@ def check_token(token, url):
     success = (resp.status_code == 200)
 
     if success:
+        LOGGER.info('Token authentication returned HTTP %s' % resp.status_code)
         data = resp.json()
         LOGGER.debug('Data from token endpoint: %s' % data)
         return True, data
     else:
+        LOGGER.info('Token authentication failed with HTTP %s' % resp.status_code)
         return False, {}
 
 
@@ -246,7 +248,7 @@ class WebDAVAuthenticator(Authenticator):
         # so logging.info(...) has to be used instead of LOGGER.info(...)
 
         # Get variables from the login form:
-        # DEFINITION OF REQUIRED VALUES IN LOGIN FORM HERE:
+        # DEFINITION OF REQUIRED VALUES IN LOGIN POST FORM HERE:
         token = data.get('auth_token', '')
         auth_username = data.get('auth_username', data.get('username', ''))
         auth_password = data.get('auth_password', data.get('password', ''))
@@ -437,7 +439,7 @@ class WebDAVAuthenticator(Authenticator):
 
         return userdir_in_hub
 
-    def get_user_dir_path_in_spawned(spawner, index=0):
+    def get_user_dir_path_in_spawned(self, spawner, index=0):
 
         # List of bind-mount mountpoints in the spawned container:
         # e.g. ['/home/jovyan/work', '/home/bla/blubb/'].
@@ -457,7 +459,7 @@ class WebDAVAuthenticator(Authenticator):
     If the JupyterHub runs inside a container, this path is NOT the path
     we have to use to create user directories etc.
     '''
-    def get_user_dir_path_on_host(spawner, index=0):
+    def get_user_dir_path_on_host(self, spawner, index=0):
 
         # IMPORTANT:
         # We can only use the directory path on the host if the JupyterHub runs
@@ -503,7 +505,7 @@ class WebDAVAuthenticator(Authenticator):
     :param userdir_group_id: GID of the directory to be created.
     :param subdir: Name of subdirectory to create.
     '''
-    def prepare_user_directory(userdir, userdir_owner_id, userdir_group_id, subdir=None):
+    def prepare_user_directory(self, userdir, userdir_owner_id, userdir_group_id, subdir=None):
 
         # User dir or subdir?
         if subdir is None:
@@ -513,7 +515,9 @@ class WebDAVAuthenticator(Authenticator):
             LOGGER.info("Preparing subdirectory in user's directory (on host or in hub's container): %s", userdir)
 
         # Create if not exist:
-        if not os.path.isdir(userdir):
+        if os.path.isdir(userdir):
+            LOGGER.debug('User directory exists already!')
+        else:
             try:
                 LOGGER.debug("Creating dir, as it does not exist.")
                 os.mkdir(userdir)
@@ -551,10 +555,20 @@ class WebDAVAuthenticator(Authenticator):
     def pre_spawn_start(self, user, spawner):
         LOGGER.info('Preparing spawn of container for %s...' % user.name)
 
+        # What is the environment here:
+        # TODO Remove this from the printing!
+        LOGGER.debug('This is the current environment in "pre_spawn_start": %s' % os.environ)
+        # Contains vars set in docker-compose!
+        # Contains vars set in Dockerfile
+        # Does not contain the vars set in "c.DockerSpawner.environment" - why not? TODO
+        # And: PATH, HOSTNAME (docker id of the hub), 'DEBIAN_FRONTEND': 'noninteractive', 'LANG': 'C.UTF-8', 'HOME': '/root'
+
         # Get userdir name:
         userdir = self.get_user_dir_path(spawner)
             
         # Prepare user directory:
+        # This is the directory where the docker spawner will mount the <username>_sync directory!
+        # But we create it beforehand so that docker does not create it as root:root
         if userdir is not None:
             LOGGER.info('Preparing user directory...')
             userdir = self.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
