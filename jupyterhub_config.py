@@ -77,6 +77,11 @@ c.JupyterHub.log_level = LOG_LEVEL
 if LOG_LEVEL == 'DEBUG':
   c.DockerSpawner.debug = True
 
+##
+## Timeout (in seconds) before giving up on a spawned HTTP server
+## Once a server has successfully been spawned, this is the amount of time we
+## wait before assuming that the server is unable to accept connections.
+c.Spawner.http_timeout = 60
 
 ##
 ## Set whitelists for users
