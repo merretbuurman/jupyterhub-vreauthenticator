@@ -16,6 +16,7 @@ DOCKER_NETWORK_NAME = os.environ['DOCKER_NETWORK_NAME']
 ##
 ## Optional, have defaults:
 CONTAINER_PREFIX = os.environ.get('CONTAINER_PREFIX', 'jupyter')
+MEMORY_LIMIT = os.environ.get('MEMORY_LIMIT', '2G')
 HUB_IP = os.environ.get('HUB_IP', 'hub')
 RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
@@ -24,6 +25,11 @@ ADMIN_PW = os.environ.get('ADMIN_PW', None)
 WHITELIST_AUTH = os.environ.get('WHITELIST_AUTH', None)
 WHITELIST_WEBDAV = os.environ.get('WHITELIST_WEBDAV', None)
 
+
+##
+## Memory limits
+## https://github.com/jupyterhub/dockerspawner#memory-limits
+c.Spawner.mem_limit = MEMORY_LIMIT
 
 # spawn with Docker
 c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
