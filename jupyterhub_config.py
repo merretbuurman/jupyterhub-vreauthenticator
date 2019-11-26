@@ -9,6 +9,11 @@ c = get_config()
 ###
 
 ##
+## Have to be set:
+DOCKER_JUPYTER_IMAGE = os.environ['DOCKER_JUPYTER_IMAGE']
+DOCKER_NETWORK_NAME = os.environ['DOCKER_NETWORK_NAME']
+
+##
 ## Optional, have defaults:
 RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
@@ -30,12 +35,14 @@ c.DockerSpawner.notebook_dir = notebook_dir
 c.DockerSpawner.volumes = { '/mnt/data/jupyterhub-user/jupyterhub-user-{username}': notebook_dir }
 
 # docker image
-c.DockerSpawner.image = 'abarth/divand-jupyterhub:latest'
+c.DockerSpawner.image = DOCKER_JUPYTER_IMAGE
 
 # The docker instances need access to the Hub, so the default loopback port doesn't work:
 from jupyter_client.localinterfaces import public_ips
 c.JupyterHub.hub_ip = public_ips()[0]
 
+# Pass the network name as argument to spawned containers
+c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
 
 # WebDAVAuthenticator
 c.JupyterHub.authenticator_class = 'webdavauthenticator.WebDAVAuthenticator'
