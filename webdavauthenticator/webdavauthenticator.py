@@ -316,8 +316,13 @@ class WebDAVAuthenticator(Authenticator):
 
         # Also check WebDAV server for whitelist, before passing it
         # on to the spawner:
-        if not self.is_mount_server_whitelisted(webdav_mount_url):
-            webdav_mount_url = ''
+        if len(webdav_mount_url.strip()) == 0:
+            LOGGER.debug('No webdav_mount_url given.')
+        else:
+            if not self.is_mount_server_whitelisted(webdav_mount_url):
+                webdav_mount_url = ''
+            else:
+                LOGGER.debug('We will pass on: webdav_mount_url=%s (passed the white list check)' % webdav_mount_url)
 
         # Return dict for use by spawner
         # See https://jupyterhub.readthedocs.io/en/stable/reference/authenticators.html#using-auth-state
