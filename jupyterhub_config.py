@@ -15,6 +15,7 @@ DOCKER_NETWORK_NAME = os.environ['DOCKER_NETWORK_NAME']
 
 ##
 ## Optional, have defaults:
+CONTAINER_PREFIX = os.environ.get('CONTAINER_PREFIX', 'jupyter')
 HUB_IP = os.environ.get('HUB_IP', 'hub')
 RUN_AS_USER = os.environ.get('RUN_AS_USER', None)
 RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', None)
@@ -39,6 +40,10 @@ c.DockerSpawner.volumes = { '/mnt/data/jupyterhub-user/jupyterhub-user-{username
 
 # docker image
 c.DockerSpawner.image = DOCKER_JUPYTER_IMAGE
+
+##
+## Prefix for the container's names:
+c.DockerSpawner.prefix = CONTAINER_PREFIX
 
 ##
 ## Pass the IP where the instances can access the JupyterHub instance
