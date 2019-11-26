@@ -41,6 +41,10 @@ c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 ## TODO: What is this setting good for?
 ## TODO: Do we really want to allow setting this from env?
 ##
+## Define the directory where the Notebook opens: (TODO: Is this the correct word?)
+## https://github.com/jupyterhub/dockerspawner#data-persistence-and-dockerspawner
+## Please no trailing slash!
+##
 ## Explicitly set notebook directory because we'll be mounting a host volume to
 ## it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
 ## user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
@@ -69,7 +73,7 @@ c.DockerSpawner.image = DOCKER_JUPYTER_IMAGE
 c.DockerSpawner.prefix = CONTAINER_PREFIX
 
 ##
-## WebDAVAuthenticator
+## Which authenticator to use
 c.JupyterHub.authenticator_class = 'webdavauthenticator.WebDAVAuthenticator'
 
 ##
@@ -96,7 +100,7 @@ c.Authenticator.admin_users = admin = set()
 c.Authenticator.enable_auth_state = True
 
 ##
-## Logo    
+## Logo file
 c.JupyterHub.logo_file = "/usr/local/share/jupyter/hub/static/images/sdn.png"
 
 
@@ -210,6 +214,7 @@ c.DockerSpawner.network_name = DOCKER_NETWORK_NAME
 
 ##
 ## Pass the network name as argument to spawned containers
+## TODO: What for?
 c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
 
 ##
