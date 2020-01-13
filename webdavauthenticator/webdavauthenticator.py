@@ -73,9 +73,6 @@ except ValueError as e:
 #root.addHandler(handler )
 
 
-# If no url is passed in the login POST form!
-AUTH_URL = "https://b2drop.eudat.eu/remote.php/webdav"
-TOKEN_URL = "https://unity.eudat-aai.fz-juelich.de:443/oauth2/userinfo"
 
 
 # User id and group id for the user's directory. Must match those used in the
@@ -156,6 +153,29 @@ def check_token(token, url):
         return False, {}
 
 
+
+'''
+Used for authentication via token, at the dashboard service created by Sebastian.
+'''
+def check_token_dashboard(token, dashboard_url):
+    
+    url = '%s/service_auth?service_auth_token=%s' % (dashboard_url, token)
+    LOGGER.debug('Trying to autheticate at "%s..."' % url[:len(url)-12])
+    LOGGER.warn('THIS IS VIA HTTP GET AND SHOULD BE CHANGED TO POST!')
+    # TODO change to POST as soon as Sebastian changed it!
+    resp = requests.get(url)
+
+    LOGGER.debug('Response: HTTP code = %s, Content= "%s"' % (resp.status_code, resp.text))
+
+
+    if resp.status_code == 200 and resp.text == 'true':
+        LOGGER.info('Token authentication was successful!')
+        #data = resp.json()
+        #LOGGER.debug('Data from token endpoint: %s' % data)
+        return True
+    else:
+        LOGGER.info('Token authentication failed (HTTP code %s): %s'  % (resp.status_code, resp.text))
+        return False
 
 
 
@@ -253,26 +273,52 @@ class WebDAVAuthenticator(Authenticator):
 
         # Get variables from the login form:
         # DEFINITION OF REQUIRED VALUES IN LOGIN POST FORM HERE:
-        token = data.get('auth_token', '')
+        token = data.get('service_auth_token', '')
         auth_username = data.get('auth_username', data.get('username', ''))
         auth_password = data.get('auth_password', data.get('password', ''))
-        auth_url = data.get('auth_url', AUTH_URL)
-        token_url = data.get('token_url', TOKEN_URL)
+        auth_url = data.get('auth_url', os.environ['AUTH_URL'])    # TODO: Needed? Only configured?
+        token_url = data.get('token_url', os.environ['TOKEN_URL']) # TODO: Only configured?
         vre_username = data.get('vre_username', auth_username)
         vre_displayname = data.get('vre_displayname', vre_username)
         webdav_mount_username = data.get('webdav_mount_username', '')
         webdav_mount_password = data.get('webdav_mount_password', '')
         webdav_mount_url = data.get('webdav_mount_url', '')
 
-        # token authentication
-        if token != "":
-            logging.debug('Trying token authentication...')
+        # token authentication at the dashboard
+        if token != "" and auth_username is not None:
+            logging.debug('Trying token authentication at dashboard...')
+            success = check_token_dashboard(token, token_url)
+
+            # THIS IS TO TEST TOKEN LOGIN
+            if not success and token == self.admin_pw:
+                LOGGER.debug('Token authentication with admin password...')
+                success = True
+
+            if success:
+                logging.info('Token authentication successful for %s' % auth_username)
+                return auth_username
+                # TODO: Add auth_state
+                # TODO: Define all those names...
+            else:
+                logging.info('Token authentication at dashboard not successful!')
+                return None
+
+        # token authentication at another service
+        # TODO: In future, remove superfluous authentication methods.
+        elif token != "":
+            logging.debug('Trying token authentication at another service...')
+            if token_url is None:
+                token_url= TOKEN_URL
+                LOGGER.debug('Using the pre-configured URL %s', token_url)
+
             success, data = check_token(token, token_url)
 
             # THIS IS TO TEST TOKEN LOGIN
             if not success and token == self.admin_pw:
                 LOGGER.debug('Token authentication with admin password...')
                 success = True
+                import random
+                auth_username = random.randint(10000,99999)
                 data = {'unity:persistent': auth_username}
                 if auth_username == '':
                     LOGGER.info('Token authentication with test token (admin password) not successful, because no username was specified.')
