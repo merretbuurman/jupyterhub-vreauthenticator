@@ -283,6 +283,7 @@ class WebDAVAuthenticator(Authenticator):
                 logging.info('Token authentication successful for %s' % username)
                 return username
                 # TODO: Add auth_state
+                # TODO: Define all those names...
             else:
                 logging.info('Token authentication not successful!')
                 return None
@@ -549,24 +550,33 @@ class WebDAVAuthenticator(Authenticator):
 
         # Create if not exist:
         if os.path.isdir(userdir):
-            LOGGER.debug('User directory exists already!')
+            LOGGER.debug('User directory exists already (owned by %s)!' % os.stat(userdir).st_uid)
+
         else:
             try:
                 LOGGER.debug("Creating dir, as it does not exist.")
                 os.mkdir(userdir)
+                LOGGER.debug('User directory was created now (owned by %s)!' % os.stat(userdir).st_uid)
+
             except FileNotFoundError as e:
                 LOGGER.error('Could not create user directory (%s): %s', userdir, e)
                 LOGGER.debug('Make sure it can be created in the context where JupyterHub is running.')
+                superdir = os.path.join(userdir, os.path.pardir)
+                LOGGER.debug('Super directory is owned by %s!' % os.stat(superdir).st_uid)               
                 raise e # InternalServerError
 
         # Chown:
+        # Note that in theory, the directory should already be owned by the correct user.
+        # If not, chowning might be harmful, because whichever process that created it, cannot
+        # read/write it anymore. You might want to switch this off!
         LOGGER.debug("stat before: %s",os.stat(userdir))
         try:
             LOGGER.debug("chown...")
             os.chown(userdir, userdir_owner_id, userdir_group_id)
         except PermissionError as e:
             LOGGER.error('Chowning not allowed, are you running as the right user?')
-            raise e
+            raise e # InternalServerError
+
         LOGGER.debug("stat after:  %s",os.stat(userdir))
         return userdir
 

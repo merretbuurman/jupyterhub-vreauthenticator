@@ -58,9 +58,9 @@ c.DockerSpawner.notebook_dir = notebook_dir
 ## We mount the <username>_sync directory, which is the synchronizer target directory!
 ## We mount it to a subdirectory of the Notebook directory (so that the sync dir does not get
 ## crowded with weird Jupyter stuff...
-##)
-## TODO: Where does username come from?
-##
+## The {username} comes from dockerspawner's volumenamingstrategy.py, and from JupyterHub's
+## base handler which constructs a User object from the result of the authenticate() method,
+## where we return a username (so we control that!)
 c.DockerSpawner.volumes = {
     HOST_LOCATION_USERDIRS+'/{username}_sync/': notebook_dir+'/sync',
 }
@@ -91,8 +91,9 @@ c.Spawner.http_timeout = int(HTTP_TIMEOUT)
 
 ##
 ## Set whitelists for users
-## TODO Do we want to use this?
+## All Marine-ID users are allowed to login (no whitelist):
 #c.Authenticator.whitelist = whitelist = set()
+## Currently, no admin users - we could add me there, but is my Marine-Id my name?Or my NextCloud username? I think the latter! # TODO
 c.Authenticator.admin_users = admin = set()
 
 ##
@@ -215,7 +216,7 @@ c.DockerSpawner.network_name = DOCKER_NETWORK_NAME
 
 ##
 ## Pass the network name as argument to spawned containers
-## TODO: What for?
+## TODO: What for? Seems to work fine without it!
 c.DockerSpawner.extra_host_config = { 'network_mode': DOCKER_NETWORK_NAME }
 
 ##
