@@ -526,7 +526,7 @@ class WebDAVAuthenticator(Authenticator):
 
 
     '''
-    Create (& chown) the user's directory before the user's container is
+    Create the user's directory before the user's container is
     spawned. If intermediate directories don't exist, they are not created,
     for security reasons.
 
@@ -535,10 +535,8 @@ class WebDAVAuthenticator(Authenticator):
     c.DockerSpawner.volumes = { '/path/on/host/juser-{username}': '/home/jovyan/work' }
 
     :param userdir: Full path of the directory.
-    :param userdir_owner_id: UID of the directory to be created.
-    :param userdir_group_id: GID of the directory to be created.
     '''
-    def prepare_user_directory(self, userdir, userdir_owner_id, userdir_group_id):
+    def create_user_directory(self, userdir):
 
         LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
 
@@ -559,14 +557,36 @@ class WebDAVAuthenticator(Authenticator):
                 LOGGER.debug('Super directory is owned by %s!' % os.stat(superdir).st_uid)               
                 raise e # InternalServerError
 
-        # Chown:
-        # Note that in theory, the directory should already be owned by the correct user.
-        # If not, chowning might be harmful, because whichever process that created it, cannot
-        # read/write it anymore. You might want to switch this off!
-        LOGGER.debug("stat before: %s",os.stat(userdir))
-        if not os.stat(userdir).st_uid == userdir_owner_id:
-            LOGGER.warn("The userdirectory is owned by %s (expected: %s), chowning now!" % (os.stat(userdir).st_uid, userdir_owner_id))
+        return userdir
 
+    '''
+    Chown the user's directory before the user's container is
+    spawned.
+
+    :param userdir: Full path of the directory.
+    :param userdir_owner_id: UID of the directory to be created.
+    :param userdir_group_id: GID of the directory to be created.
+    '''
+    def chown_user_directory(self, userdir, userdir_owner_id, userdir_group_id):
+
+        # Note that in theory, the directory should already be owned by the correct user,
+        # as NextCloud or the synchronization process should run as the same UID and have
+        # created it.
+        #
+        # If the directory does not exist yet, it is created by whatever user runs JupyterHub
+        # - likely root - so we may have to chown it!
+        #
+        # In other situations, chowning might be harmful, because whichever process that
+        # created it, cannot read/write it anymore. You might want to switch this off!
+        # 
+
+        LOGGER.debug("stat before: %s",os.stat(userdir))
+
+        # Check:
+        if not os.stat(userdir).st_uid == userdir_owner_id:
+            LOGGER.warn("The userdirectory is owned by %s (required: %s), chowning now!" % (os.stat(userdir).st_uid, userdir_owner_id))
+
+        # Execute:
         try:
             LOGGER.debug("chown...")
             os.chown(userdir, userdir_owner_id, userdir_group_id)
@@ -618,7 +638,8 @@ class WebDAVAuthenticator(Authenticator):
         # But we create it beforehand so that docker does not create it as root:root
         if userdir is not None:
             LOGGER.info('Preparing user directory...')
-            userdir = self.prepare_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
+            self.create_user_directory(userdir)
+            self.chown_user_directory(userdir, USERDIR_OWNER_ID, USERDIR_GROUP_ID)
 
         # Retrieve variables:
         auth_state = yield user.get_auth_state()
