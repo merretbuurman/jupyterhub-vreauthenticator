@@ -571,7 +571,7 @@ class WebDAVAuthenticator(Authenticator):
         # read/write it anymore. You might want to switch this off!
         LOGGER.debug("stat before: %s",os.stat(userdir))
         if not os.stat(userdir).st_uid == userdir_owner_id:
-            LOGGER.warn("The userdirectory is owned by %s (expected: %s), chowning now!", (os.stat(userdir).st_uid, userdir_owner_id))
+            LOGGER.warn("The userdirectory is owned by %s (expected: %s), chowning now!" % (os.stat(userdir).st_uid, userdir_owner_id))
 
         try:
             LOGGER.debug("chown...")
