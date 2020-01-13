@@ -537,16 +537,10 @@ class WebDAVAuthenticator(Authenticator):
     :param userdir: Full path of the directory.
     :param userdir_owner_id: UID of the directory to be created.
     :param userdir_group_id: GID of the directory to be created.
-    :param subdir: Name of subdirectory to create.
     '''
-    def prepare_user_directory(self, userdir, userdir_owner_id, userdir_group_id, subdir=None):
+    def prepare_user_directory(self, userdir, userdir_owner_id, userdir_group_id):
 
-        # User dir or subdir?
-        if subdir is None:
-            LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
-        else:
-            userdir = os.path.join(userdir, subdir)
-            LOGGER.info("Preparing subdirectory in user's directory (on host or in hub's container): %s", userdir)
+        LOGGER.info("Preparing user's directory (on host or in hub's container): %s", userdir)
 
         # Create if not exist:
         if os.path.isdir(userdir):
