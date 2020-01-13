@@ -247,7 +247,7 @@ c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="p
           autocapitalize="off"
           autocorrect="off"
           class="form-control"
-          name="username"
+          name="auth_username"
           value=""
           tabindex="1"
           autofocus="autofocus"
