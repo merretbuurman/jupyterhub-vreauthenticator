@@ -190,8 +190,7 @@ class WebDAVAuthenticator(Authenticator):
         config = True)
 
     # White list of auth servers where users may authenticate:
-    allowed_auth_servers = List(
-        [AUTH_URL],
+    allowed_auth_servers = List([],
         config = True)
 
     # White list of WebDAV server from which resources may be mounted:
