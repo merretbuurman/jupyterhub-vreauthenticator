@@ -693,8 +693,10 @@ class WebDAVAuthenticator(Authenticator):
         auth_state = yield user.get_auth_state()
 
         if not auth_state:
-            LOGGER.warning("auth state not enabled (performing no more pre-spawn activities).")
+            LOGGER.warning("auth state not availble (performing no more pre-spawn activities).")
             return None
+        else:
+            LOGGER.debug('auth_state received: "%s"' % auth_state)
 
         # Create environment vars for the container to-be-spawned:
         # CONTAINER ENVIRONMENT DEFINED HERE:
