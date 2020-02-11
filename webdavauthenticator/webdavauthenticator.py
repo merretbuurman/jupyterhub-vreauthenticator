@@ -276,7 +276,7 @@ class WebDAVAuthenticator(Authenticator):
         auth_username = data.get('auth_username', data.get('username', ''))
         auth_password = data.get('auth_password', data.get('password', ''))
         auth_url = data.get('auth_url', os.environ['AUTH_URL'])    # TODO: Needed? Only configured?
-        token_url = data.get('token_url', os.environ['TOKEN_URL']) # TODO: Only configured?
+        token_url = data.get('token_url', os.environ.get('TOKEN_URL', '')) # TODO: Only configured?
         vre_username = data.get('vre_username', auth_username)
         vre_displayname = data.get('vre_displayname', vre_username)
         webdav_mount_username = data.get('webdav_mount_username', '')
@@ -722,9 +722,7 @@ if __name__ == "__main__":
 
     username=sys.argv[1]
     password=sys.argv[2]
-    url = AUTH_URL
-    if len(sys.argv) == 4:
-        url=sys.argv[3]
+    url=sys.argv[3]
 
     print('__________________________\nTest WebDAV Authentication...')
     print(check_webdav(username, password, url))
