@@ -283,6 +283,8 @@ class WebDAVAuthenticator(Authenticator):
         webdav_mount_username = data.get('webdav_mount_username', '')
         webdav_mount_password = data.get('webdav_mount_password', '')
         webdav_mount_url = data.get('webdav_mount_url', '')
+        fileselection_path = data.get('fileselection_path', '')
+
 
         # token authentication at the dashboard
         if token != "" and auth_username is not None:
@@ -388,6 +390,7 @@ class WebDAVAuthenticator(Authenticator):
                     "webdav_mount_password": webdav_mount_password,
                     "webdav_mount_username": webdav_mount_username,
                     "webdav_mount_url": webdav_mount_url,
+                    "fileselection_path": fileselection_path,
                 }}
         LOGGER.debug("return auth_state: %s" % auth_state)
         return auth_state
@@ -701,6 +704,7 @@ class WebDAVAuthenticator(Authenticator):
         spawner.environment['WEBDAV_USERNAME'] = auth_state['webdav_mount_username']
         spawner.environment['WEBDAV_PASSWORD'] = auth_state['webdav_mount_password']
         spawner.environment['WEBDAV_URL'] = auth_state['webdav_mount_url']
+        spawner.environment['FILESELECTION_PATH'] = auth_state['fileselection_path']
 
         # Done!
         LOGGER.debug("Finished pre_spawn_start()...")

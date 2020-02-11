@@ -311,6 +311,15 @@ c.WebDAVAuthenticator.custom_html = """<form action="/hub/login?next=" method="p
           value = "https://dummy"
         />
 
+        <label for='fileselection_path_input'>File selection (path):</label>
+        <input
+          type="text"
+          class="form-control"
+          name="fileselection_path"
+          id="fileselection_path_input"
+          value = "/Photos/Hummingbird.jpg"
+        />
+
         <input
           type="submit"
           id="login_submit"
