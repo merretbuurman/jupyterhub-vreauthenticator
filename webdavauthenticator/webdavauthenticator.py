@@ -297,7 +297,8 @@ class WebDAVAuthenticator(Authenticator):
 
             if success:
                 logging.info('Token authentication successful for %s' % auth_username)
-                return auth_username
+                validuser = auth_username
+                #return auth_username
                 # TODO: Add auth_state
                 # TODO: Define all those names...
             else:
@@ -336,18 +337,18 @@ class WebDAVAuthenticator(Authenticator):
                 return None
 
         # WebDAV username/password authentication
-        logging.info('Authentication using username and password via WebDAV: %s' % auth_url)
-        if not self.is_auth_server_whitelisted(auth_url):
-            return None
-
+        #logging.info('Authentication using username and password via WebDAV: %s' % auth_url)
+        #if not self.is_auth_server_whitelisted(auth_url):
+        #    return None
+        #
         # WebDAV check here:
-        validuser = check_webdav(auth_username, auth_password, auth_url)
+        #validuser = check_webdav(auth_username, auth_password, auth_url)
 
         # Allow a password to be configured, so we can login without a valid
         # WebDAV account or access to a WebDAV server:
-        if validuser is None and auth_password == self.admin_pw:
-            validuser = auth_username
-            logging.warning('User %s logged in using the configured admin password!', auth_username)
+        #if validuser is None and auth_password == self.admin_pw:
+        #    validuser = auth_username
+        #    logging.warning('User %s logged in using the configured admin password!', auth_username)
 
         if validuser is None:
             logging.warning("Authentication failed for: %s", auth_username)
