@@ -387,7 +387,6 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
         spawner.environment['FILESELECTION_PATH'] = auth_state['fileselection_path']
         spawner.environment['SERVICE_AUTH_TOKEN'] = auth_state['service_auth_token']
         spawner.environment['JUPYTERHUB_TOKEN'] = auth_state['service_auth_token']
-        spawner.environment['FOO_MAP'] = auth_state['service_auth_token']
         # Added by JupyterHub:
         # JUPYTERHUB_USER (which is the same as VRE_USERNAME)
         # and others
