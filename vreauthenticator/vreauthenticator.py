@@ -6,7 +6,7 @@ import jupyterhub.auth
 import logging
 
 
-VERSION = '20200415-1'
+VERSION = '20200422'
 
 # Logging for this module: Default is info, can be configured using a env var.
 LOGGER = logging.getLogger(__name__)
@@ -41,7 +41,12 @@ def check_token_at_dashboard(token, dashboard_url):
     url = '%s/service_auth' % dashboard_url
     post_data = {'service_auth_token': token}
     LOGGER.debug('Trying to authenticate at "%s..." (via POST)' % url[:len(url)-12])
-    resp = requests.post(url, data = post_data)
+    try:
+        resp = requests.post(url, data = post_data)
+    except requests.exceptions.ConnectionError as e: #requests.exceptions.ConnectionError: HTTPSConnectionPool(host='sdc-test.argo.grnet.gr', port=443): Max retries exceeded with url: /service_auth (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7fad7bc5aeb8>: Failed to establish a new connection: [Errno 113] No route to host',))
+        LOGGER.error('Caught exception: %s' % e)
+        LOGGER.info('Token authentication failed (no HTTP code), but exception: %s'  % e)
+        return False
 
     LOGGER.debug('Response: HTTP code = %s, Content= "%s"' % (resp.status_code, resp.text))
 
