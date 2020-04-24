@@ -122,8 +122,10 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
     # env var 'NB_UID' to the container (which we do in jupyterhub_config.py).
     # See:
     # https://github.com/jupyter/docker-stacks/blob/7a3e968dd21268c4b7a6746458ac34e5c3fc17b9/base-notebook/Dockerfile#L10
-    userdir_user_id = traitlets.Integer(1000,
-        config = True)
+    userdir_user_id = traitlets.Integer(None,
+        config = True,
+        allow_none = False)
+
 
     # OPTIONAL:
     # Group id for the user's directory. Must match the gid used to run the
@@ -134,9 +136,9 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
     # env var 'NB_GID' to the container (which we do in jupyterhub_config.py).
     # See:
     # https://github.com/jupyter/docker-stacks/blob/7a3e968dd21268c4b7a6746458ac34e5c3fc17b9/base-notebook/Dockerfile#L10
-    userdir_group_id = traitlets.Integer(100,
-        config = True)
-
+    userdir_group_id = traitlets.Integer(None,
+        config = True,
+        allow_none = False)
 
     @tornado.gen.coroutine
     def authenticate(self, handler, data):

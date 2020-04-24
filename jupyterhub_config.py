@@ -26,6 +26,12 @@ ADMIN_PW = os.environ.get('ADMIN_PW', None)
 WHITELIST_AUTH = os.environ.get('WHITELIST_AUTH', None)
 WHITELIST_WEBDAV = os.environ.get('WHITELIST_WEBDAV', None)
 HTTP_TIMEOUT = os.environ.get('HTTP_TIMEOUT', '60')
+RUN_AS_USER = os.environ.get('RUN_AS_USER', 1000)
+RUN_AS_GROUP = os.environ.get('RUN_AS_GROUP', 100)
+
+## Some need to be int:
+RUN_AS_USER = int(RUN_AS_USER)
+RUN_AS_GROUP = int(RUN_AS_GROUP)
 
 
 ##
@@ -180,6 +186,10 @@ if RUN_AS_GROUP is not None:
   container_env['NB_GID'] = RUN_AS_GROUP
 
 c.DockerSpawner.environment = container_env
+
+# Tell spawner which uid:gid to use:
+c.VREAuthenticator.userdir_user_id = RUN_AS_USER
+c.VREAuthenticator.userdir_group_id = RUN_AS_GROUP
 
 
 ##################
