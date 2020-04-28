@@ -3,6 +3,7 @@ version: '3.3'
 
 services:
   hub_diva:
+  hub_vip:
   hub_python:
   hub_rrr:
   hub_erddap:
@@ -53,11 +54,13 @@ services:
       DOCKER_JUPYTER_IMAGE: registry-sdc.argo.grnet.gr/ifr-sdn-subset-service:20200428-2
       # How to call the containers:
       CONTAINER_PREFIX: 'diva'
+      CONTAINER_PREFIX: 'vip'
       CONTAINER_PREFIX: 'python'
       CONTAINER_PREFIX: 'rrr'
       CONTAINER_PREFIX: 'erddap'
       # Under which URL is this reachable? host:port/BASE_URL/
       BASE_URL: 'diva'   # this must be in the dashboard, and in nginx config!
+      BASE_URL: 'divavip' # this must be in the dashboard, and in nginx config!
       BASE_URL: 'python' # this must be in the dashboard, and in nginx config!
       BASE_URL: 'rrr'    # this must be in the dashboard, and in nginx config!
       BASE_URL: 'erddap' # this must be in the dashboard, and in nginx config!
@@ -65,6 +68,7 @@ services:
       DOCKER_NETWORK_NAME: vre-hubs
       DOCKER_NETWORK_NAME: vre
       HUB_IP: hub_diva   # this is this service's name!
+      HUB_IP: hub_vip   # this is this service's name!
       HUB_IP: hub_python # this is this service's name!
       HUB_IP: hub_rrr    # this is this service's name!
       HUB_IP: hub_erddap # this is this service's name!
@@ -73,6 +77,7 @@ services:
       HTTP_TIMEOUT: 60
       # Misc:
       MEMORY_LIMIT: '5G'
+      MEMORY_LIMIT: '20G'
       SHUTDOWN_ON_LOGOUT: 'false'
       # ERDDAP and possibly others:
       JAVA_OPTS: '-Xms800M -Xmx800M'
