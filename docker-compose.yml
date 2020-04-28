@@ -1,0 +1,97 @@
+version: '3.3'
+# VERSION 20200428
+
+services:
+  hub_diva:
+  hub_python:
+  hub_rrr:
+  hub_erddap:
+    image: registry-sdc.argo.grnet.gr/jupyterhub_vre:20200428
+    restart: always
+    ports:
+      - 8000
+    volumes:
+      # Docker Socket (needed to spawn containers)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Config:
+      - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py
+      # Where NextCloud accounts will be mounted:
+      - /XXX/vre/sync_from_athens/nextcloud_data:/usr/share/userdirectories/:rw
+      - /nfs-import:/usr/share/userdirectories/:rw
+      # Health check:
+      - ../HEALTH/healthcheck_jupyterhub.sh:/bin/healthcheck.sh
+    cap_add:
+      - SYS_ADMIN
+    networks:
+      - vre-hubs
+      - vre
+    environment:
+      #LOG_LEVEL: 'DEBUG'
+      # User directories will be chowned to these uid:gid, unless they exist.
+      # Jupyter Notebooks will run as these uid:gid.
+      RUN_AS_USER: 501
+      RUN_AS_GROUP: 501
+      RUN_AS_USER: 1000
+      RUN_AS_GROUP: 1000
+      # Where are the user directories on the host file system:
+      HOST_WHERE_ARE_USERDIRS: '/XXX/vre/sync_from_athens/nextcloud_data' # on bluewhale
+      HOST_WHERE_ARE_USERDIRS: '/nfs-import'         # on jellyfish
+      USERDIR_IN_CONTAINER: '/home/jovyan/work/nextcloud' # DIVA operating on NextCloud
+      USERDIR_IN_CONTAINER: '/home/jovyan/work/nextcloud_sync' # DIVA operating on synced
+      USERDIR_IN_CONTAINER: '/nextcloud' # ERDDAP
+      USERDIR_TEMPLATE_HOST: '/{raw_username}/files' # On original NextCloud
+      USERDIR_TEMPLATE_HOST: '/{raw_username}'       # On synced NextCloud
+      MOUNT_USER_DIRS: 'true'
+      # Where to authenticate users:
+      AUTH_URL: 'https://sdc-test.argo.grnet.gr'
+      WHITELIST_AUTH: 'https://sdc-test.argo.grnet.gr'
+      ADMIN_PW: 'XXXchange-me'
+      # Which image to run:
+      DOCKER_JUPYTER_IMAGE: abarth/divand-jupyter:2020-04-28T0841
+      DOCKER_JUPYTER_IMAGE: jupyter/r-notebook:15a66513da30
+      DOCKER_JUPYTER_IMAGE: jupyterhub/singleuser:1.2
+      DOCKER_JUPYTER_IMAGE: registry-sdc.argo.grnet.gr/ifr-sdn-subset-service:20200428-2
+      # How to call the containers:
+      CONTAINER_PREFIX: 'diva'
+      CONTAINER_PREFIX: 'python'
+      CONTAINER_PREFIX: 'rrr'
+      CONTAINER_PREFIX: 'erddap'
+      # Under which URL is this reachable? host:port/BASE_URL/
+      BASE_URL: 'diva'   # this must be in the dashboard, and in nginx config!
+      BASE_URL: 'python' # this must be in the dashboard, and in nginx config!
+      BASE_URL: 'rrr'    # this must be in the dashboard, and in nginx config!
+      BASE_URL: 'erddap' # this must be in the dashboard, and in nginx config!
+      # Network config:
+      DOCKER_NETWORK_NAME: vre-hubs
+      DOCKER_NETWORK_NAME: vre
+      HUB_IP: hub_diva   # this is this service's name!
+      HUB_IP: hub_python # this is this service's name!
+      HUB_IP: hub_rrr    # this is this service's name!
+      HUB_IP: hub_erddap # this is this service's name!
+      JUPYTERHUB_CRYPT_KEY: "XXX" # create by: "openssl rand -hex 32"
+      SSL_OFF: 'true'
+      HTTP_TIMEOUT: 60
+      # Misc:
+      MEMORY_LIMIT: '5G'
+      SHUTDOWN_ON_LOGOUT: 'false'
+      # ERDDAP and possibly others:
+      JAVA_OPTS: '-Xms800M -Xmx800M'
+      HOST_NAME: 'jellyfish.argo.grnet.gr'
+      PORT_NAME: '443'
+      HOST_WHERE_IS_ERDDAP_DATA: '/home/vre/erddap_servicedata'
+      SERVICE_PORT_IN_CONTAINER: 8091
+      FILESELECTOR_URL: 'https://sdc-test.argo.grnet.gr:7788'
+
+    healthcheck:
+      test: ["CMD", "/bin/healthcheck.sh"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+    labels:
+    - "JupyterHub"
+
+networks:
+  vre-hubs:
+  vre:
+    external: true
+
