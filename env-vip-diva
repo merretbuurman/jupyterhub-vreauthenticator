@@ -1,0 +1,27 @@
+### Service DIVA (VIP version)
+### Running on bluewhale
+### Using synchronized Nextcloud
+### 20200918
+
+HOST_WHERE_ARE_USERDIRS=/scratch/vre/sync_from_athens/nextcloud_data
+HEALTH=../HEALTH
+RUN_AS_USER=501
+RUN_AS_GROUP=501
+USERDIR_TEMPLATE_HOST=/{raw_username}
+USERDIR_IN_CONTAINER=/home/jovyan/work/nextcloud_sync
+AUTH_URL=https://sdc-test.argo.grnet.gr
+ADMIN_PW=foo
+DOCKER_JUPYTER_IMAGE=abarth/divand-jupyter:2020-08-31T0716-501
+CONTAINER_PREFIX=vip
+BASE_URL=divavip
+HUB_IP=hub_vip
+JUPYTERHUB_CRYPT_KEY=23f88c1d846dc5047548f78b6cf90d350225f339bdc32ac0d08068d250855889
+MEMORY_LIMIT=20G
+
+# Not needed for DIVA:
+JAVA_OPTS=foo
+HOST_NAME=foo
+HOST_WHERE_IS_ERDDAP_DATA=/foo
+SERVICE_PORT_IN_CONTAINER=foo
+FILESELECTOR_URL=https://foo.bar
+
