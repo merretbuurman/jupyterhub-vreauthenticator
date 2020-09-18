@@ -50,8 +50,8 @@ services:
       # Which image to run:
       DOCKER_JUPYTER_IMAGE: abarth/divand-jupyter:2020-08-31T0716-501
       DOCKER_JUPYTER_IMAGE: jupyter/r-notebook:15a66513da30
-      DOCKER_JUPYTER_IMAGE: jupyterhub/singleuser:1.2
-      DOCKER_JUPYTER_IMAGE: registry-sdc.argo.grnet.gr/ifr-sdn-subset-service:20200428-2
+      DOCKER_JUPYTER_IMAGE: jupyterhub/singleuser-healthchecked:1.2-20200428-1
+      DOCKER_JUPYTER_IMAGE: registry-sdc.argo.grnet.gr/ifr-sdn-subset-service:20200812
       # How to call the containers:
       CONTAINER_PREFIX: 'diva'
       CONTAINER_PREFIX: 'vip'
