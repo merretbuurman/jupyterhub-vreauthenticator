@@ -156,8 +156,8 @@ if RUN_AS_USER == 33:
 ### Misc settings ###
 #####################
 
-# WHere does the service run inside the container?
-# JupyterHub by default # expects services to run at 8888,'so we must tell JHub where
+# Where does the service run inside the container?
+# JupyterHub by default expects services to run at 8888, so we must tell JHub where
 # to access it instead. E.g. ERDDAP always runs on port 8091 inside the container.
 c.Spawner.port = SERVICE_PORT_IN_CONTAINER
 #c.DockerSpawner.port=SERVICE_PORT_IN_CONTAINER
