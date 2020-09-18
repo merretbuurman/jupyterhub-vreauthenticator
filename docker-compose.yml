@@ -1,5 +1,5 @@
 version: '3.3'
-# VERSION 20200831
+# VERSION 20200914
 
 services:
   hub_diva:
@@ -18,7 +18,7 @@ services:
       - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py
       # Where NextCloud accounts will be mounted:
       - /XXX/vre/sync_from_athens/nextcloud_data:/usr/share/userdirectories/:rw
-      - /nfs-import:/usr/share/userdirectories/:rw
+      - /mnt/sdc-nfs-data/:/usr/share/userdirectories/:rw
       # Health check:
       - ../HEALTH/healthcheck_jupyterhub.sh:/bin/healthcheck.sh
     cap_add:
