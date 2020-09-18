@@ -1,5 +1,5 @@
 version: '3.3'
-# VERSION 20200428
+# VERSION 20200831
 
 services:
   hub_diva:
@@ -48,7 +48,7 @@ services:
       WHITELIST_AUTH: 'https://sdc-test.argo.grnet.gr'
       ADMIN_PW: 'XXXchange-me'
       # Which image to run:
-      DOCKER_JUPYTER_IMAGE: abarth/divand-jupyter:2020-04-28T0841-501
+      DOCKER_JUPYTER_IMAGE: abarth/divand-jupyter:2020-08-31T0716-501
       DOCKER_JUPYTER_IMAGE: jupyter/r-notebook:15a66513da30
       DOCKER_JUPYTER_IMAGE: jupyterhub/singleuser:1.2
       DOCKER_JUPYTER_IMAGE: registry-sdc.argo.grnet.gr/ifr-sdn-subset-service:20200428-2
