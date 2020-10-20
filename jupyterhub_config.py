@@ -5,7 +5,7 @@ c = get_config()
 import logging
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
-VERSION = '20200428'
+VERSION = '20201020'
 LOGGER.info('Jupyter Config version %s' % VERSION)
 
 
@@ -239,10 +239,16 @@ if len(BASE_URL) > 0:
 
 whitelist = []
 
-if WHITELIST_AUTH is None:
+if WHITELIST_AUTH is None or len(WHITELIST_AUTH)==0:
     urls = []
 else:
-    urls = WHITELIST_AUTH.split(',')
+    if ',' in WHITELIST_AUTH:
+        urls = WHITELIST_AUTH.split(',')
+    elif ';' in WHITELIST_AUTH:
+        urls = WHITELIST_AUTH.split(';')
+    else:
+        urls = [WHITELIST_AUTH]
+
 
 for url in urls:
     url = url.strip()
