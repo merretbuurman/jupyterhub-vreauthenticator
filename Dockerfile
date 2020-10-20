@@ -43,7 +43,8 @@ RUN pip3 install jupyterhub-dummyauthenticator
 # Install custom VREAuthenticator
 
 # From local files:
-COPY ./auth_package jupyterhub-vreauthenticator/
+COPY ./vreauthenticator jupyterhub-vreauthenticator/vreauthenticator
+COPY ./setup.py jupyterhub-vreauthenticator/setup.py
 RUN cd ./jupyterhub-vreauthenticator && python3 setup.py install && cd ..
 # From github: # TODO
 #RUN git clone https://github.com/merretbuurman/jupyterhub-webdavauthenticator.git
