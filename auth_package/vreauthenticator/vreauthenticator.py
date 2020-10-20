@@ -49,7 +49,7 @@ def check_token_at_dashboard(token, dashboard_url):
     try:
         resp = requests.post(url, data = post_data)
 
-    except requests.exceptions.ConnectionError as e: #requests.exceptions.ConnectionError: HTTPSConnectionPool(host='sdc-test.argo.grnet.gr', port=443): Max retries exceeded with url: /service_auth (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7fad7bc5aeb8>: Failed to establish a new connection: [Errno 113] No route to host',))
+    except requests.exceptions.ConnectionError as e: #requests.exceptions.ConnectionError: HTTPSConnectionPool(host='vre.seadatanet.org', port=443): Max retries exceeded with url: /service_auth (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7fad7bc5aeb8>: Failed to establish a new connection: [Errno 113] No route to host',))
         LOGGER.error('Caught exception (possibly the auth service is down): %s' % e)
         LOGGER.info('Token authentication failed (no HTTP code), exception: %s'  % e)
         return False

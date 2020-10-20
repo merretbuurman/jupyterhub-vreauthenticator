@@ -34,7 +34,7 @@ services:
       MOUNT_USER_DIRS: 'true'
       # Where to authenticate users:
       AUTH_URL: ${AUTH_URL}
-      WHITELIST_AUTH: 'https://sdc-test.argo.grnet.gr'
+      WHITELIST_AUTH: 'https://vre.seadatanet.org;https://sdc-test.argo.grnet.gr'
       ADMIN_PW: ${ADMIN_PW}
       # Which image to run:
       DOCKER_JUPYTER_IMAGE: ${DOCKER_JUPYTER_IMAGE}
