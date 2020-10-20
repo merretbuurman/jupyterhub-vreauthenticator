@@ -1,10 +1,9 @@
 ### Service R
 ### Running on bluewhale
 ### Using synchronized Nextcloud
-### 20200918
+### 20201020
 
 HOST_WHERE_ARE_USERDIRS=/scratch/vre/sync_from_athens/nextcloud_data
-HEALTH=../HEALTH
 RUN_AS_USER=501
 RUN_AS_GROUP=501
 USERDIR_TEMPLATE_HOST=/{raw_username}

@@ -19,6 +19,10 @@ RUN pip3 install dockerspawner==0.11.1 # from 20200425, most recent on pypi on 2
 COPY ./logo.png ./archive/
 COPY ./dkrz_favicon.ico ./archive/favicon.ico
 
+# Health check:
+COPY ./healthcheck_jupyterhub.sh ./
+HEALTHCHECK --interval=15s --timeout=10s --retries=8 CMD ./healthcheck_jupyterhub.sh
+
 # Useful for reference:
 # RUN pwd # /srv/jupyterhub
 COPY ./Dockerfile ./archive/

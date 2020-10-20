@@ -2,14 +2,13 @@
 ### Running on XXX
 ### Using synchronized Nextcloud OR
 ### Using NFS-mounted Nextcloud (with original directory structure)
-### 20200918
+### 20201020
 
 ### See: https://docs.docker.com/compose/env-file/
 
 ### For more details, check the docker-compose.yml and the jupyterhub_config.py!
 
 HOST_WHERE_ARE_USERDIRS= Where are user dirs contained? Will be bind-mounted. No pending slashes please!
-HEALTH= Where are healthcheck files? Will be bind-mounted.
 RUN_AS_USER= Run as which user # Tell spawned Notebooks to run as this uid. This only works automatically with Notebooks, other spawned containers have to implement this! This also affects the ownership of created files. If you put 33, you may have to adapt the entrypoint too.
 RUN_AS_GROUP= Run as which group # Tell spawned Notebooks to run as this gid. This only works automatically with Notebooks, other spawned containers have to implement this! This also affects the ownership of created files. If you put 33, you may have to adapt the entrypoint too.
 USERDIR_TEMPLATE_HOST= Name of the user directory (inside HOST_WHERE_ARE_USERDIRS) that will be bind-mounted into the spawned containers. See two options: 

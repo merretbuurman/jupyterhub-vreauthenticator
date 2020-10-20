@@ -14,8 +14,6 @@ services:
       - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py
       # Where NextCloud accounts will be mounted:
       - ${HOST_WHERE_ARE_USERDIRS}:/usr/share/userdirectories/:rw
-      # Health check:
-      - ${HEALTH}/healthcheck_jupyterhub.sh:/bin/healthcheck.sh
     cap_add:
       - SYS_ADMIN
     networks:
@@ -60,11 +58,6 @@ services:
       SERVICE_PORT_IN_CONTAINER: ${SERVICE_PORT_IN_CONTAINER}
       FILESELECTOR_URL: ${FILESELECTOR_URL}
 
-    healthcheck:
-      test: ["CMD", "/bin/healthcheck.sh"]
-      interval: 60s
-      timeout: 30s
-      retries: 5
     labels:
     - "JupyterHub"
 
