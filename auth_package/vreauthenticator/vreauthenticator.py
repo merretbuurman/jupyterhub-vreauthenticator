@@ -285,7 +285,12 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
             # uses outdated jupyterhub_config.py, this might still be a problem!
             # Note: Removing does not help (I think), as the mounting is done elsewhere!
             LOGGER.error('Two consecutive slashes in the path "%s"! Will lead to Internal Server Error!' % userdir_path_on_host)
-        
+            raise ValueError('in config. Cannot mount paths containing "//". Admins: Please check JupyterHub log for details.')
+            # This is displayed in browser as:
+            #> 500 : Internal Server Error
+            #> Error in Authenticator.pre_spawn_start: ValueError in config. Cannot mount paths containing "//". Admins: Please check JupyterHub log for details.
+            #> You can try restarting your server from the home page.
+
         # Logging
         LOGGER.info('User directory will be: %s (bind-mounted from %s).',
             userdir_path_in_hub, userdir_path_on_host)
