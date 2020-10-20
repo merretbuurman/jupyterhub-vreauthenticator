@@ -1,36 +1,19 @@
-FROM jupyterhub/jupyterhub:1.2
-# Digest: 44111725d95b
-# That digest is not available anymore on 20200918.
-# It was created 2020-03-02T09:29:11.732094618Z
-# I strongly assume it is commit 1bdc66c
-# (anyway, it must be this or later, but before 08eee93)
-# https://github.com/jupyterhub/jupyterhub/commit/1bdc66c75b786c11fb24c13eb281a0dd61fa0a92
-#
-# The tag :1.2 now corresponds to digest cba38d5ccf6a. 
-# In future, ideally write the git commit into here for later debugging!
-#
-#root@d8dfbff8b600:/usr/local/lib/python3.6/dist-packages/jupyterhub# grep -r 'require(\[\"jquery\"' /usr/
-#...
-#/usr/local/share/jupyterhub/static/js/home.js:require(["jquery", "moment", "jhapi"], #function(
-# So it is definitely AFTER this commit happened: 1bdc66c
-# https://github.com/jupyterhub/jupyterhub/commit/1bdc66c75b786c11fb24c13eb281a0dd61fa0a92
-# I will assume it is this commit, because the 2-3 ones afterwards are only non-python stuff I think.
+FROM jupyterhub/jupyterhub:1.2.0b1
+# Digest: 292a7ecea0fb
+# This corresponds to tags "latest" and "1.2" on 20201020
+# According to https://hub.docker.com/r/jupyterhub/jupyterhub/builds
+# it is commit 082f651
+# https://github.com/jupyterhub/jupyterhub/tree/082f6516a15de1c74657a57b5f9fee5a082c0600
 
-# And BEFORE 08eee93
-https://github.com/jupyterhub/jupyterhub/commit/08eee9309ef5b6ee6a707b117080b0d99d9989c5
-# Because:
-root@d8dfbff8b600:/usr/local/lib/python3.6/dist-packages/jupyterhub# vi _version.py
-
-
-#RUN which python3     # /usr/bin/python3
-#RUN python3 --version # Python 3.6.9
+RUN which python3     # /usr/bin/python3
+RUN python3 --version # Python 3.8.2
 
 # Add useful tools (wget for the health check)
 RUN apt-get update && apt-get install -y vim wget
 
 # Install spawner
 RUN pip3 install --upgrade pip
-RUN pip3 install dockerspawner==0.11.1 # most recent on 20200422, on pypi
+RUN pip3 install dockerspawner==0.11.1 # from 20200425, most recent on pypi on 20201020
 
 # Logo
 COPY ./logo.png ./archive/
@@ -65,6 +48,6 @@ RUN cd ./jupyterhub-vreauthenticator && python3 setup.py install && cd ..
 # This is only to check if it built correctly:
 RUN python3 -c "import vreauthenticator"
 
-# docker build -t jupyterhub_vre:20200428 .
-# docker build -t registry-sdc.argo.grnet.gr/jupyterhub_vre:20200428 .
-# docker push registry-sdc.argo.grnet.gr/jupyterhub_vre:20200428
+# docker build -t jupyterhub_vre:20201020 .
+# docker build -t registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020 .
+# docker push registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020

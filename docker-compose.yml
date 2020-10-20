@@ -1,9 +1,9 @@
 version: '3.3'
-# VERSION 20200918
+# VERSION 20201020
 
 services:
   hub_xxx: # xxx = name of the service!
-    image: registry-sdc.argo.grnet.gr/jupyterhub_vre:20200428
+    image: registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020
     restart: always
     ports:
       - 8000
