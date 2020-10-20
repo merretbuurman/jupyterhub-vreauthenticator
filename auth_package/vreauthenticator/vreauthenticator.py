@@ -105,6 +105,8 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
 
     # Where the base directory (directory containing the user directories)
     # is on the host. Needed to find the correct bind-mount.
+    # This comes from env var HOST_WHERE_ARE_USERDIRS !
+    # Since 20201020, this is rstripped!
     basedir_on_host = traitlets.Unicode('',
         config = True)
 
@@ -245,12 +247,13 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
 
         # Find the mount which has the expected base dir:
         LOGGER.debug('Finding the bind-mount that contains the user-data:')
+        # Go over all bind-mounts that will be mounted into the spawned containers:
         all_mounted_host_dirs = list(spawner.volume_binds.keys())
         found = False
         for this_host_dir in all_mounted_host_dirs:
             if self.basedir_on_host in this_host_dir:
                 LOGGER.debug('It is this one: %s:%s' % (this_host_dir, spawner.volume_binds[this_host_dir]))
-                userdir_path_on_host = this_host_dir
+                userdir_path_on_host = this_host_dir # from jupyterhub_config.py, c.DockerSpawner.volumes
                 userdir_path_in_spawned = spawner.volume_binds[this_host_dir]
                 found = True
 
@@ -271,6 +274,16 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
         # Get dir name (how it's named in the hub container):
         common_part_hub = self.basedir_in_containerized_hub
         userdir_path_in_hub = os.path.join(common_part_hub, individual_part)
+
+        if '//' in userdir_path_on_host:
+            # This is caused by a pending slash in the HOST_WHERE_ARE_USERDIRS
+            # env variable. 
+            # And in the jupyterhub_config.py, where the
+            # c.DockerSpawner.volumes setting is filled and where the pending
+            # slash should be prevented by stripping off. But in case someone
+            # uses outdated jupyterhub_config.py, this might still be a problem!
+            # Note: Removing does not help (I think), as the mounting is done elsewhere!
+            LOGGER.error('Two consecutive slashes in the path "%s"! Will lead to Internal Server Error!' % userdir_path_on_host)
         
         # Logging
         LOGGER.info('User directory will be: %s (bind-mounted from %s).',
