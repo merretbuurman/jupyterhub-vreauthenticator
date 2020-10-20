@@ -5,7 +5,7 @@ services:
   hub_xxx: # xxx = name of the service!
     image: registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020
     restart: always
-    ports:
+    expose:
       - 8000
     volumes:
       # Docker Socket (needed to spawn containers)
