@@ -13,7 +13,9 @@ RUN_AS_USER= Run as which user # Tell spawned Notebooks to run as this uid. This
 RUN_AS_GROUP= Run as which group # Tell spawned Notebooks to run as this gid. This only works automatically with Notebooks, other spawned containers have to implement this! This also affects the ownership of created files. If you put 33, you may have to adapt the entrypoint too.
 USERDIR_TEMPLATE_HOST= Name of the user directory (inside HOST_WHERE_ARE_USERDIRS) that will be bind-mounted into the spawned containers. See two options: 
 USERDIR_TEMPLATE_HOST=/{raw_username}/files # When using original NextCloud dir structure, e.g. using NFS-mounted NextCloud data. Because we only want to make /files subdirectory available to the users.
+# --> Original NextCloud dir structure, as we mount via NFS
 USERDIR_TEMPLATE_HOST=/{raw_username}       # When using the synced NextCloud, as we synchronize already the /files subdirectory.
+# --> dir structure of synced NextCloud data
 USERDIR_IN_CONTAINER= Where the userdata will be bind-mounted to, in the spawned containers. In JupyterNotebooks, this tends to be some subdirectory of /home/jovyan/work/. 
 AUTH_URL= The URL where the authentication module asks for authentication.
 ADMIN_PW= Some password with which you can login without Marine-Id.
