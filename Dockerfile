@@ -8,10 +8,10 @@ FROM jupyterhub/jupyterhub:1.2
 #
 # The tag :1.2 now corresponds to digest cba38d5ccf6a. 
 # In future, ideally write the git commit into here for later debugging!
-
-root@d8dfbff8b600:/usr/local/lib/python3.6/dist-packages/jupyterhub# grep -r 'require(\[\"jquery\"' /usr/
-...
-/usr/local/share/jupyterhub/static/js/home.js:require(["jquery", "moment", "jhapi"], function(
+#
+#root@d8dfbff8b600:/usr/local/lib/python3.6/dist-packages/jupyterhub# grep -r 'require(\[\"jquery\"' /usr/
+#...
+#/usr/local/share/jupyterhub/static/js/home.js:require(["jquery", "moment", "jhapi"], #function(
 # So it is definitely AFTER this commit happened: 1bdc66c
 # https://github.com/jupyterhub/jupyterhub/commit/1bdc66c75b786c11fb24c13eb281a0dd61fa0a92
 # I will assume it is this commit, because the 2-3 ones afterwards are only non-python stuff I think.
