@@ -6,7 +6,7 @@ import jupyterhub.auth
 import logging
 
 
-VERSION = '20200428'
+VERSION = '20201020'
 
 # Logging for this module: Default is info, can be configured using a env var.
 LOGGER = logging.getLogger(__name__)
@@ -250,8 +250,9 @@ class VREAuthenticator(jupyterhub.auth.Authenticator):
         # Go over all bind-mounts that will be mounted into the spawned containers:
         all_mounted_host_dirs = list(spawner.volume_binds.keys())
         found = False
+        basedir_on_host = self.basedir_on_host.rstrip('/')
         for this_host_dir in all_mounted_host_dirs:
-            if self.basedir_on_host in this_host_dir:
+            if basedir_on_host in this_host_dir:
                 LOGGER.debug('It is this one: %s:%s' % (this_host_dir, spawner.volume_binds[this_host_dir]))
                 userdir_path_on_host = this_host_dir # from jupyterhub_config.py, c.DockerSpawner.volumes
                 userdir_path_in_spawned = spawner.volume_binds[this_host_dir]
