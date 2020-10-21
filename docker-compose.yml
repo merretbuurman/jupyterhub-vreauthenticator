@@ -2,8 +2,8 @@ version: '3.3'
 # VERSION 20201020
 
 services:
-  hub_xxx: # xxx = name of the service!
-    image: registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020
+  hub_xxx:
+    image: jupyterhub_vre:20201020
     restart: always
     expose:
       - 8000
@@ -17,7 +17,7 @@ services:
     cap_add:
       - SYS_ADMIN
     networks:
-      - vre # May be called vre-hubs on bluewhale
+      - vre
     environment:
       #LOG_LEVEL: 'DEBUG'
       # User directories will be chowned to these uid:gid, unless they exist.
@@ -40,7 +40,6 @@ services:
       # Under which URL is this reachable? host:port/BASE_URL/
       BASE_URL: ${BASE_URL}   # this must be in the dashboard, and in nginx config!
       # Network config:
-      DOCKER_NETWORK_NAME: vre-hubs
       DOCKER_NETWORK_NAME: vre
       HUB_IP: ${HUB_IP}   # this is this service's name!
       JUPYTERHUB_CRYPT_KEY: ${JUPYTERHUB_CRYPT_KEY} # create by: "openssl rand -hex 32"
@@ -65,7 +64,6 @@ services:
 # docker spawner, and if we use an internal one, its name will be prefixed by the
 # compose stack's name.
 networks:
-  vre-hubs:
   vre:
     external: true
 
