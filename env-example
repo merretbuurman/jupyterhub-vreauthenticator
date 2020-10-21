@@ -1,0 +1,25 @@
+### Service Python
+### Using Nextcloud
+### 20201020
+
+HOST_WHERE_ARE_USERDIRS=/storage/vre/nextcloud_data
+RUN_AS_USER=1000
+RUN_AS_GROUP=1000
+USERDIR_TEMPLATE_HOST=/{raw_username}/files
+# --> dir structure of NextCloud data
+USERDIR_IN_CONTAINER=/home/jovyan/work/nextcloud
+AUTH_URL=https://vre.seadatanet.org
+ADMIN_PW=foo
+DOCKER_JUPYTER_IMAGE=jupyterhub/singleuser:1.2
+CONTAINER_PREFIX=python
+BASE_URL=python
+HUB_IP=hub_xxx
+JUPYTERHUB_CRYPT_KEY=foo
+MEMORY_LIMIT=5G
+
+# Only needed for ERDDAP deployment:
+#JAVA_OPTS=-Xms800M -Xmx800M
+#HOST_NAME=somehost.grnet.gr
+#HOST_WHERE_IS_ERDDAP_DATA=/home/vre/erddap_servicedata
+#SERVICE_PORT_IN_CONTAINER=8091
+#FILESELECTOR_URL=https://vre.seadatanet.org/fileselector
