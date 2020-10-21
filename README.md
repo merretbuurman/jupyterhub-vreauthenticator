@@ -154,6 +154,53 @@ else:
 
 See https://jupyterhub.readthedocs.io/en/stable/getting-started/security-basics.html#if-ssl-termination-happens-outside-of-the-hub
 
+To change back to proxied version, just undo the changes above.
+
+
+### Change image of spawned containers
+
+* Change the value for `DOCKER_JUPYTER_IMAGE` in .env.
+* Restart the service by changing into the directory where the docker-compose.yml is sitting, and running `docker-compose down && docker-compose up -d && docker-compose logs --tail=100 - f`.
+* Make sure to remove the existing containers `docker rm <containername>`, as running containers are not changed of course.
+* Ideally, remove the old image: `docker image rm <old-imagename>`, so it does not take up space.
+
+
+### Enough overall memory in the container?
+
+Depending on how much memory you need, also increase overall memory for the containers in the .env file, by setting `MEMORY_LIMIT=5G`
+
+This will be picked up in the jupyterhub_config.py:
+
+```
+MEMORY_LIMIT = os.environ.get('MEMORY_LIMIT', '2G')
+c.Spawner.mem_limit = MEMORY_LIMIT
+```
+
+See https://github.com/jupyterhub/dockerspawner#memory-limits
+
+
+### Mounted user directories
+
+
+The users' directories are bind-mounted into the JuypterHub container from `/storage/on/host/userdirectories` to `/usr/share/userdirectories/`.
+
+* The location on the host can be chosen, it is defined by `HOST_WHERE_ARE_USERDIRS`, which contains all the users' directories.
+* The location inside the container can be chosen, but there is no reason to do so, as it is only visible to JupyterHub.
+
+The specific user's directory is mounted into their spawned containers from `/storage/on/host/userdirectories/alice[/files]` to `/nextcloud` or to `/home/jovyan/work/nextcloud`.
+
+* The location on the host can be chosen, it is defined by `HOST_WHERE_ARE_USERDIRS`, which contains all the users' directories, and `USERDIR_TEMPLATE_HOST`, which defines the user-specific part of the path:
+  * `/{raw_username}/files` in case the original NextCloud data is used (e.g. via NFS-mount or directly from disk), which is the case on GRNET's VMs, or:
+  * `/{raw_username}` if the user's data is contained directly in the directory that has the user's name, e.g. if the synchronized NextCloud data is used (as we only synchronize the content of the /files subdirectory), e.g. on DKRZ's servers.
+* The location inside the spawned container can be chosen, it is defined by `USERDIR_IN_CONTAINER`. We strongly recommend not changing it, as the services may expect it in a certain location and fail if not found, or as this might confuse the users (e.g. they are used to finding their data in `/home/jovyan/` as it is common in JupyterNotebooks).
+
+
+
+### username vs raw_username: Why raw_username?
+
+**TODO**
+
+
 
 ### Authentication API: What is expected?
 
@@ -167,9 +214,10 @@ Currently (2020-10-20) the image is based on `jupyterhub/jupyterhub:1.2.0b1`, wh
 More up-to-date info is usually included in the Dockerfile in this repository.
 
 
-### username vs raw_username: Why raw_username?
 
-**TODO**
+### What operations on the file system are done by the prespawn method?
+
+**TODO***
 
 
 ### Why an external docker network?
