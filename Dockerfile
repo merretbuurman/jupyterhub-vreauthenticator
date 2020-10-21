@@ -47,8 +47,8 @@ COPY ./vreauthenticator jupyterhub-vreauthenticator/vreauthenticator
 COPY ./setup.py jupyterhub-vreauthenticator/setup.py
 RUN cd ./jupyterhub-vreauthenticator && python3 setup.py install && cd ..
 # From github: # TODO
-#RUN git clone https://github.com/merretbuurman/jupyterhub-webdavauthenticator.git
-#RUN cd jupyterhub-webdavauthenticator && python setup.py install && cd ..
+#RUN git clone https://github.com/merretbuurman/jupyterhub-vredavauthenticator.git
+#RUN cd jupyterhub-vreauthenticator && python setup.py install && cd ..
 
 # This is only to check if it built correctly:
 RUN python3 -c "import vreauthenticator"
@@ -56,3 +56,4 @@ RUN python3 -c "import vreauthenticator"
 # docker build -t jupyterhub_vre:20201020 .
 # docker build -t registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020 .
 # docker push registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020
+
