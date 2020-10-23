@@ -29,6 +29,5 @@ MEMORY_LIMIT=5G The memory limit to be given to the container.
 # Not needed for DIVA:
 JAVA_OPTS= Java options passed to ERDDAP
 HOST_NAME= ERDDAP needs to know its host name (FQDN)
-HOST_WHERE_IS_ERDDAP_DATA= ERDDAP needs to know some directory with some static stuff. At the moment, it expects in there a subdir called "erddap-webapps/" which then contains "erddap.war" and another subdir "erddap/" which contains directories "download", "images", "META-INF", "public", and "WEB-INF".
 SERVICE_PORT_IN_CONTAINER= Where does the service run inside the container? JupyterHub by default expects services to run at 8888, so we must tell JHub where to access it instead. E.g. ERDDAP always runs on port 8091 inside the container.
 FILESELECTOR_URL= Any service that uses the file selector can find its URL here (at the moment, only ERDDAP)

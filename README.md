@@ -250,6 +250,9 @@ Note: This only works automatically with Notebooks, other spawned containers hav
 
 The `c.DockerSpawner.environment` can be used to pass arbitrary environment variables to the spawned containers!
 
+### What to do if running as uid 33?
+
+**TODO**
 
 ### Running Non-Jupter services
 

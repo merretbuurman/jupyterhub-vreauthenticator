@@ -20,6 +20,5 @@ MEMORY_LIMIT=5G
 # Only needed for ERDDAP deployment:
 #JAVA_OPTS=-Xms800M -Xmx800M
 #HOST_NAME=somehost.grnet.gr
-#HOST_WHERE_IS_ERDDAP_DATA=/home/vre/erddap_servicedata
 #SERVICE_PORT_IN_CONTAINER=8091
 #FILESELECTOR_URL=https://vre.seadatanet.org/fileselector
