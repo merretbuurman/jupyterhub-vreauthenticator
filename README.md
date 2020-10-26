@@ -300,6 +300,14 @@ c.DockerSpawner.volumes = volume_mounts
 ```
 
 
+### Test Run with DummyAuthenticator
+
+In the `jupyterhub_config.py`, change the `c.JupyterHub.authenticator_class = 'vreauthenticator.VREAuthenticator'` to `c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'`, and add a line `c.DummyAuthenticator.password = "your-pw-of-choice"` (with a password of your choice here).
+
+After a restart, you will be able to login using that password, for any username.
+
+
+
 ## Troubleshooting / previously solved problems ##
 
 ### Error 500 : Internal Server Error (1)
@@ -328,6 +336,17 @@ hub_erddap_1  | INFO:vreauthenticator.vreauthenticator:User directory will be: /
 ```
 
 (This should be fixed since 2020-10-20.)
+
+
+### Error "invalid characters for a local volume" (in log)
+
+If the JupyterHub fails to spawn a container, and complains that: 
+
+```
+docker.errors.APIError: 400 Client Error: Bad Request ("create ./xxx/xxx: "./xxx/xxx" includes invalid characters for a local volume name, only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use absolute path")
+```
+
+The problem might be that you're trying to bind-mount a relative path (starting with `./` instead of `/`) in the `c.DockerSpawner.volumes` section in jupyterhub_config.py.
 
 
 ## Future work / TODOs ##
