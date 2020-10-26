@@ -5,6 +5,8 @@ FROM jupyterhub/jupyterhub:1.2.0b1
 # it is commit 082f651
 # https://github.com/jupyterhub/jupyterhub/tree/082f6516a15de1c74657a57b5f9fee5a082c0600
 
+# Version 20201026
+
 RUN which python3     # /usr/bin/python3
 RUN python3 --version # Python 3.8.2
 
@@ -17,7 +19,8 @@ RUN pip3 install dockerspawner==0.11.1 # from 20200425, most recent on pypi on 2
 
 # Logo
 COPY ./logo.png ./archive/
-COPY ./dkrz_favicon.ico ./archive/favicon.ico
+COPY ./favicon.ico ./archive/favicon.ico
+COPY ./favicon.ico /usr/local/share/jupyterhub/static/favicon.ico
 
 # Health check:
 COPY ./healthcheck_jupyterhub.sh ./
@@ -53,7 +56,7 @@ RUN cd ./jupyterhub-vreauthenticator && python3 setup.py install && cd ..
 # This is only to check if it built correctly:
 RUN python3 -c "import vreauthenticator"
 
-# docker build -t jupyterhub_vre:20201020 .
-# docker build -t registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020 .
-# docker push registry-sdc.argo.grnet.gr/jupyterhub_vre:20201020
+# docker build -t jupyterhub_vre:20201026 .
+# docker build -t registry-sdc.argo.grnet.gr/jupyterhub_vre:20201026 .
+# docker push registry-sdc.argo.grnet.gr/jupyterhub_vre:20201026
 

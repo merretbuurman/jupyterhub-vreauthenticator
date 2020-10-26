@@ -1,9 +1,9 @@
 version: '3.3'
-# VERSION 20201020
+# VERSION 20201026
 
 services:
   hub_xxx:
-    image: jupyterhub_vre:20201020
+    image: registry-sdc.argo.grnet.gr/jupyterhub_vre:20201026
     restart: always
     expose:
       - 8000
