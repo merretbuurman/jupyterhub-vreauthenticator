@@ -200,6 +200,7 @@ The specific user's directory is mounted into their spawned containers from `/st
 
 **TODO**
 
+See: https://github.com/jupyterhub/dockerspawner/issues/371
 
 
 ### Authentication API: What is expected?
