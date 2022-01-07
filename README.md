@@ -204,7 +204,21 @@ The specific user's directory is mounted into their spawned containers from `/st
 
 ### Authentication API: What is expected?
 
-**TODO**
+The authentication API at the SeaDataCloud VRE expects a call via HTTP-POST, containing only this: `{'service_auth_token': token}`. The token comes from the Login form. In the SeaDataCloud case, the login form is hidden from the user. The webpage sends the login form and its contents via HTTP-POST to the JupyerHub (e.g. `https://someanimal.dkrz.de/diva/hub/login?next`) when a user clicks the button of a JupyterHub-based service:
+
+```
+<form id="form_diva" method="POST" action="https://someanimal.dkrz.de/diva/hub/login?next" target="_blank">
+  <input type="hidden" name="vre_username" value="vre_larsondlkfjldsfj">
+  <input type="hidden" name="vre_displayname" value="Jonathan Larson">
+  <input type="hidden" name="service_auth_token" value="9dfksjldn34u">
+  <input type="hidden" name="vre_URL" value="https://vre.seadatanet.org">
+</form>
+```
+
+The current API URL is: `https://vre.seadatanet.org/service_auth`. It is provided by the config of the JupyterHub (setting `AUTH_URL: ${AUTH_URL}` in the `docker-compose.yml`'s environment section, will be used in `jupyterhub_config.yml` as `c.VREAuthenticator.auth_url`).
+
+
+Check out the method `check_token_at_dashboard(token, dashboard_url)` and `authenticate(self, handler, data)` for this.
 
 
 ### JupyterHub base image
