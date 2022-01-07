@@ -232,7 +232,12 @@ More up-to-date info is usually included in the Dockerfile in this repository.
 
 ### What operations on the file system are done by the prespawn method?
 
-**TODO***
+Check out the method `def pre_spawn_start(self, user, spawner)`.
+
+If we said in config that we mount the userdirs, then the method `def prepare_user_directory(spawner)` is used:
+
+If the user directory already exists in the filesystem, nothing is done. If it does not exist, it is created and chowned to the `uid:gid` passed in config (settings: `c.VREAuthenticator.userdir_user_id = RUN_AS_USER` and `c.VREAuthenticator.userdir_group_id = RUN_AS_GROUP`).
+
 
 
 ### Why an external docker network?
